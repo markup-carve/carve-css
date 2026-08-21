@@ -1,0 +1,90 @@
+/*
+ * Carve print layer.
+ *
+ * Load AFTER core.css and extensions.css. It is not wrapped in @media print, so
+ * a consumer can also apply it deliberately - carve-pdf renders through a
+ * headless browser and wants these rules on screen, which is exactly why
+ * carve-pdf had to write its own print stylesheet rather than reuse anyone's.
+ *
+ * For the ordinary case, load it inside a print media query:
+ *   <link rel="stylesheet" href=".../print.css" media="print">
+ */
+
+/* Paper is white and ink is black regardless of the reader's theme: a dark
+ * palette sent to a printer is a page of toner. */
+.carve {
+  --carve-surface: #ffffff;
+  --carve-sunk: #f2f2f2;
+  --carve-raised: #ffffff;
+  --carve-ink: #000000;
+  --carve-ink-soft: #444444;
+  --carve-rule: #cccccc;
+  --carve-border: #999999;
+  --carve-accent: #000000;
+  --carve-accent-soft: #f2f2f2;
+  --carve-accent-ink: #000000;
+}
+
+/* A heading should not be the last line on a page, and a construct should not
+ * be split across a page break when it can be avoided. */
+.carve :is(h1, h2, h3, h4, h5, h6) {
+  break-after: avoid;
+  break-inside: avoid;
+}
+.carve :is(pre, blockquote, figure, table, .admonition, .spoiler, .callouts) {
+  break-inside: avoid;
+}
+.carve tr {
+  break-inside: avoid;
+}
+/* A table running over a page break repeats its header, or the second page is
+ * unreadable. */
+.carve thead {
+  display: table-header-group;
+}
+
+/* Interactive constructs have no interaction on paper. Every panel is shown,
+ * with its label, rather than only whichever tab happened to be checked. */
+.carve .tabs-panel,
+.carve .code-group-panel {
+  display: block;
+}
+.carve .tabs-radio,
+.carve .code-group-radio {
+  display: none;
+}
+.carve .tabs-label,
+.carve .code-group-label {
+  border-block-end: 0;
+  color: var(--carve-ink);
+  font-weight: 600;
+}
+/* A disclosure is closed on screen and has to be open on paper: its content is
+ * part of the document, and the reader cannot click it. */
+.carve .spoiler {
+  display: block;
+}
+.carve .spoiler > :not(summary) {
+  display: revert;
+}
+
+/* The permalink anchor is hover chrome; on paper it is a stray character. */
+.carve .permalink {
+  display: none;
+}
+
+/* A link's destination is invisible on paper unless it is printed. Only for
+ * absolute URLs: printing "(#section-3)" after every cross-reference adds noise
+ * without adding information. */
+.carve a[href^="http"]::after {
+  content: " (" attr(href) ")";
+  font-size: 0.85em;
+  color: var(--carve-ink-soft);
+  word-break: break-all;
+}
+
+/* Two columns of index on paper is right; two columns that break mid-entry is
+ * not, and print engines honour break-inside less reliably than browsers. */
+.carve .index-list {
+  columns: 2;
+}

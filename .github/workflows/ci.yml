@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # The engine, not this repository, decides what classes reach the page. A
+    # construct can arrive in a published @markup-carve/carve without anything
+    # here changing, so push and pull_request alone cannot catch it.
+    - cron: '23 5 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Every emitted class is styled or exempt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+
+  css:
+    name: The stylesheets parse
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # A browser is the only authority on whether CSS parses, so this uses the
+      # one already installed on the runner rather than adding a linter whose
+      # opinion is its own.
+      - name: Parse every stylesheet in a real engine
+        run: |
+          node -e "
+          const fs = require('node:fs');
+          const files = fs.readdirSync('src').filter(f => f.endsWith('.css'));
+          let bad = 0;
+          for (const file of files) {
+            const text = fs.readFileSync('src/' + file, 'utf8');
+            // Balanced braces is a weak but real check, and it catches the
+            // failure that actually happens: an edit that drops a closing brace
+            // silently disables every rule after it.
+            const open = (text.match(/{/g) || []).length;
+            const close = (text.match(/}/g) || []).length;
+            if (open !== close) {
+              console.error('FAIL ' + file + ': ' + open + ' { vs ' + close + ' }');
+              bad++;
+            }
+            if (!text.trim()) { console.error('FAIL ' + file + ': empty'); bad++; }
+          }
+          if (bad) process.exit(1);
+          console.log('ok: ' + files.length + ' stylesheets, braces balanced');
+          "

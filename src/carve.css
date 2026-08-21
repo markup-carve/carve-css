@@ -1,0 +1,17 @@
+/*
+ * @markup-carve/carve-css - everything, in the order the layers depend on.
+ *
+ * Import this when you want the whole thing:
+ *   @import "@markup-carve/carve-css";
+ *
+ * Or take the layers you need. tokens.css is required by both others; core.css
+ * covers what the core renderer emits; extensions.css covers what the bundled
+ * extensions add, and can be skipped by a consumer that renders without them.
+ *
+ * print.css is NOT imported here, because whether it applies at all times or
+ * only inside a print media query is the consumer's call - see its own header.
+ */
+
+@import "./tokens.css";
+@import "./core.css";
+@import "./extensions.css";

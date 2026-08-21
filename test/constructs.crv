@@ -1,0 +1,110 @@
+%% Every construct this package styles, in one document. It is the coverage
+%% gate's input: a construct missing from here is a construct the gate cannot
+%% check, so add to this file whenever the language grows one.
+
+# A heading
+
+Prose with /emphasis/, *strong*, `code`, a [link](https://example.com), an
+@mention, a #tag, a footnote[^note], {+inserted+}, {-deleted-} and
+{#an editorial comment#}.
+
+[^note]: The note's text.
+
+## Admonitions
+
+::: note "With a title"
+Body.
+:::
+
+::: warning
+Without a title.
+:::
+
+::: danger "Danger"
+Body.
+:::
+
+::: tip "Tip"
+Body.
+:::
+
+::: important "Important"
+Body.
+:::
+
+## Quotes and figures
+
+> A quoted line.
+^ The attribution
+
+::: figure
+![alt text](image.png)
+^ The caption
+:::
+
+## Tables
+
+|= Column |= Another |
+| cell | cell |
+
+## Lists
+
+- [ ] an open task
+- [x] a done task
+
+## Code
+
+``` js
+const a = 1; // <1>
+```
+
+<1> A callout bound to the marker above.
+
+::: code-group
+``` js [one.js]
+a
+```
+``` php [two.php]
+b
+```
+:::
+
+## Tabs
+
+::: tabs
+::: tab "First"
+first panel
+:::
+::: tab "Second"
+second panel
+:::
+:::
+
+## Disclosure
+
+::: spoiler "Hidden"
+Revealed.
+:::
+
+## Math
+
+$$`E = mc^2`
+
+## Reference apparatus
+
+::: glossary
+API
+:  Application Programming Interface
+:::
+
+An :index[indexed term] in prose.
+
+::: toc
+:::
+
+::: list-table
+- - row one, cell one
+  - row one, cell two
+- - row two, cell one
+  - row two, cell two
+:::

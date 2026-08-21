@@ -1,0 +1,35 @@
+{
+  "name": "@markup-carve/carve-css",
+  "version": "0.1.0",
+  "description": "Stylesheet for the HTML the Carve markup language renders - admonitions, tab sets, code groups, callouts, figures, footnotes, glossary and index",
+  "keywords": ["carve", "markup", "css", "stylesheet", "theme"],
+  "license": "MIT",
+  "author": "Mark Scherer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markup-carve/carve-css.git"
+  },
+  "bugs": {
+    "url": "https://github.com/markup-carve/carve-css/issues"
+  },
+  "homepage": "https://markup-carve.github.io/carve/",
+  "type": "module",
+  "style": "src/carve.css",
+  "main": "src/carve.css",
+  "exports": {
+    ".": "./src/carve.css",
+    "./tokens.css": "./src/tokens.css",
+    "./core.css": "./src/core.css",
+    "./extensions.css": "./src/extensions.css",
+    "./print.css": "./src/print.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["src"],
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "test": "node scripts/check-coverage.mjs"
+  },
+  "devDependencies": {
+    "@markup-carve/carve": "^0.1.4"
+  }
+}
