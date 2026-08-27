@@ -174,6 +174,33 @@ Dark mode covers all three theme states: `:root` carries the light palette, a
 inverting, because a pale wash on a dark ground is a light box the reader's eye
 has to fight.
 
+### If your host has its own theme toggle, map it to `data-theme`
+
+Plenty of hosts signal dark with a **class** instead - VitePress and Tailwind
+both use `dark` on the root element. This package reads `data-theme`, so a class
+alone reaches nothing and the palette silently stays light: white cards on a dark
+page.
+
+**Map it in both directions, not just dark.** A host that signals light by
+stamping *nothing* leaves the `prefers-color-scheme` block matching, so on a
+dark-OS machine a light page picks up the dark tokens - the same bug pointing the
+other way, and the one people miss because they only test the toggle they were
+fixing.
+
+```js
+const root = document.documentElement
+const sync = () =>
+  root.setAttribute('data-theme', root.classList.contains('dark') ? 'dark' : 'light')
+
+sync()
+new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['class'] })
+```
+
+Run it before first paint - from a `<head>` script rather than after hydration -
+or the first frame shows the wrong palette. A host that renders its own shell,
+like an IDE preview panel, can simply write the attribute when it builds the
+document.
+
 ## Two details a hand-written theme usually misses
 
 Both were found by reading real engine output rather than the syntax guide:
