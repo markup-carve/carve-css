@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
 
 permissions:
@@ -26,8 +26,7 @@ jobs:
         run: |
           version="$(node -p 'require("./package.json").version')"
           if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            tag_version="${GITHUB_REF_NAME#v}"
-            [ "$version" = "$tag_version" ] \
+            [ "$version" = "$GITHUB_REF_NAME" ] \
               || { echo "::error::package.json is $version, tag is $GITHUB_REF_NAME"; exit 1; }
           fi
           grep -qE "^## \[?${version//./\\.}\]? - " CHANGELOG.md \
