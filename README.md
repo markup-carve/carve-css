@@ -56,8 +56,9 @@ lands in the language, and six themes have to notice separately.
 | `tokens.css` | every colour, space and font, as custom properties |
 | `core.css` | what the core renderer emits, with no extensions |
 | `extensions.css` | what the bundled extensions add |
+| `recipes.css` | conventions the engine does not know: trees, cards, columns, badges |
 | `print.css` | paper: page breaks, printed URLs, open disclosures |
-| `carve.css` | the first three, in dependency order |
+| `carve.css` | tokens, core and extensions, in dependency order |
 
 Take the layers you need:
 
@@ -77,6 +78,57 @@ ordinary case:
 
 Unconditionally when a headless browser is the printer, which is how
 `carve-pdf` works and why it needed its own print sheet before this existed.
+
+## Recipes
+
+`::: name` is Tier-1 core syntax that is always on, and a word with no
+registered handler falls through to a generic `<div class="name">`. So this
+
+```
+::: tree
+- src/
+  - parser/
+    - blocks.crv
+- tests/
+:::
+```
+
+already renders as `<div class="tree"><ul>…` out of every engine - no
+extension, no configuration, no parser change. The only thing missing is CSS.
+
+`recipes.css` supplies it, for trees, card decks, columns, galleries, numbered
+steps, margin notes, scroll and full-width containers, lead paragraphs, status
+badges, and table modifiers including per-row status:
+
+```css
+@import "@markup-carve/carve-css";
+@import "@markup-carve/carve-css/recipes.css";
+```
+
+It is **not** in the bundle, and unlike `print.css` that is not about when the
+rules apply - it is about what they are. Everything in `core.css` and
+`extensions.css` styles HTML the spec pins; these class names are a convention
+this package proposes. Opting in is how you say you use the words the way
+carve-css means them. It also keeps `columns`, `cards`, `scroll` and `wide` -
+generic enough that a host's own framework may define them - out of anyone's
+page who did not ask for them.
+
+Recipes read the same tokens as the rest of the package, plus a few of their
+own with fallbacks, so an instance can be retuned without overriding a
+selector:
+
+| Property | Default | Used by |
+| --- | --- | --- |
+| `--carve-tree-guide` | `--carve-border` | the tree's connector lines |
+| `--carve-tree-indent` | `0.95em` | one level of tree nesting |
+| `--carve-gallery-ratio` | `4 / 3` | gallery tiles |
+| `--carve-wide-size` | `100%` | how far `::: wide` may spread |
+| `--carve-aside-size` | `14rem` | a floated margin note |
+
+Several take a `data-*` attribute from the source instead of a second class -
+`{.tree data-guides="dotted"}`, `{data-columns="3"}`, `[beta]{.badge
+data-tone="warn"}` - so one class covers every variant rather than multiplying
+into `.columns-2`, `.columns-3` and whatever comes next.
 
 ## Theming
 

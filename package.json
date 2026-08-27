@@ -21,6 +21,7 @@
     "./tokens.css": "./src/tokens.css",
     "./core.css": "./src/core.css",
     "./extensions.css": "./src/extensions.css",
+    "./recipes.css": "./src/recipes.css",
     "./print.css": "./src/print.css",
     "./package.json": "./package.json"
   },
