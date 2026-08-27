@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: https://registry.npmjs.org
+
+      - name: The version surfaces agree
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            tag_version="${GITHUB_REF_NAME#v}"
+            [ "$version" = "$tag_version" ] \
+              || { echo "::error::package.json is $version, tag is $GITHUB_REF_NAME"; exit 1; }
+          fi
+          grep -qE "^## \[?${version//./\\.}\]? - " CHANGELOG.md \
+            || { echo "::error::CHANGELOG.md has no dated section for $version"; exit 1; }
+          repository="$(node -p 'require("./package.json").repository.url')"
+          [ "$repository" = 'git+https://github.com/markup-carve/carve-css.git' ] \
+            || { echo "::error::package.json repository.url cannot support npm provenance"; exit 1; }
+
+      - name: The npm credential authenticates
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          [ -n "$NPM_TOKEN" ] \
+            || { echo "::error::NPM_TOKEN is not configured"; exit 1; }
+          code="$(curl -sS -o /tmp/npm-who.json -w '%{http_code}' \
+            -H "Authorization: Bearer $NPM_TOKEN" \
+            https://registry.npmjs.org/-/whoami)"
+          [ "$code" = 200 ] \
+            || { echo "::error::NPM_TOKEN does not authenticate (HTTP $code)"; exit 1; }
+          echo "npm: authenticated as $(node -p 'require("/tmp/npm-who.json").username')"
+
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+
+      - name: The package contains every public stylesheet
+        run: |
+          tarball="$(npm pack --silent)"
+          listing="$(tar -tzf "$tarball")"
+          for file in carve tokens core extensions recipes print; do
+            printf '%s\n' "$listing" | grep -qx "package/src/$file.css" \
+              || { echo "::error::$tarball is missing src/$file.css"; exit 1; }
+          done
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            npm publish --dry-run --provenance --access public
+            echo "::notice::rehearsal - nothing was published"
+          else
+            npm publish --provenance --access public
+          fi
