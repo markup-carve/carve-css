@@ -122,6 +122,7 @@ selector:
 | `--carve-tree-guide` | `--carve-border` | the tree's connector lines |
 | `--carve-tree-indent` | `0.95em` | one level of tree nesting |
 | `--carve-gallery-ratio` | `4 / 3` | gallery tiles |
+| `--carve-step-marker` | `1.5rem` | the numbered circle on a step; the text gutter follows it |
 | `--carve-wide-size` | `100%` | how far `::: wide` may spread |
 | `--carve-aside-size` | `14rem` | a floated margin note |
 
