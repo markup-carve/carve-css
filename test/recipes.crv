@@ -1,0 +1,96 @@
+%% Fixture for the opt-in recipes layer.
+%%
+%% Nothing here is a registered container word, which is exactly the point: the
+%% engine renders every one of these as a generic div or span, and recipes.css
+%% is the only thing that knows what they mean. Rendering them here ties the
+%% class the engine EMITS to the class the CSS TARGETS, so a rename on either
+%% side fails the gate instead of silently rendering unstyled.
+
+# Recipes
+
+{.lead}
+An opening paragraph, set apart by an attribute line rather than by a construct
+of its own.
+
+## Tree
+
+::: tree
+- src/
+  - parser/
+    - blocks.crv
+    - inline.crv
+  - render/
+    - html.crv
+- tests/
+:::
+
+{data-guides="dotted"}
+::: tree
+- docs/
+  - index.crv
+:::
+
+## Cards
+
+::: cards
+- *Parse* - source to AST.
+- *Render* - AST to a target.
+- *Format* - AST back to source.
+:::
+
+## Columns
+
+{data-columns="3"}
+::: columns
+Three columns of running text, flowed rather than laid out.
+
+The count comes from an attribute, so one class covers every arity.
+:::
+
+## Gallery
+
+::: gallery
+![A rendered tree](tree.png)
+
+![A rendered card deck](cards.png)
+:::
+
+## Steps
+
+::: steps
+1. Install the package.
+2. Import the stylesheet.
+3. Add the recipes layer.
+:::
+
+## Overflow and width
+
+::: scroll
+|= Column |= Another |
+| value   | value    |
+:::
+
+::: wide
+|= Wide |= Table |
+| 1     | 2      |
+:::
+
+## Margin note
+
+::: aside
+A note set beside the text on a wide screen, and inline on a narrow one.
+:::
+
+## Inline
+
+Status: [beta]{.badge}, [stable]{.badge data-tone="success"},
+[deprecated]{.badge data-tone="danger"}.
+
+## Table modifiers
+
+{.striped .compact .sticky-head}
+|= Engine   |= Recipes |
+| carve-js  | yes      |{.ok}
+| carve-php | yes      |{.ok}
+| carve-rs  | partial  |{.warn}
+| other     | no       |{.fail}
