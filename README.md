@@ -162,6 +162,3 @@ hollow (`.callout` was satisfied by a `.callouts` rule).
 When the language grows a construct, add it to `test/constructs.crv`. A
 construct missing from the fixture is one the gate cannot see.
 
-## License
-
-MIT
