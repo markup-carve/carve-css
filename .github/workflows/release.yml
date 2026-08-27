@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -70,3 +70,24 @@ jobs:
           else
             npm publish --provenance --access public
           fi
+
+      # A package on the registry with an empty releases page gives a reader no
+      # notes and no obvious source for the version they installed.
+      - name: Publish the matching GitHub release
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(awk -v v="$GITHUB_REF_NAME" '
+            $0 ~ "^## \\[?" v "\\]? - " { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md)"
+          [ -n "$notes" ] || { echo "::error::no CHANGELOG section for $GITHUB_REF_NAME"; exit 1; }
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --draft=false
+          else
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "$notes"
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" \
+            --jq 'if .draft then error("release is still a draft") else "published \(.tag_name)" end'
