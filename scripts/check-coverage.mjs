@@ -39,6 +39,11 @@ const UNSTYLED = {
   "permalink-hover": "a hover-state hook for consumers, intentionally inert here",
   tabset: "an alias for .tabs on one code path; .tabs carries the rules",
   "doc-noteref": "role on the reference anchor - styled via [role] selector",
+  // Roles carve 0.1.5 added. Both land on elements this package already
+  // styles by class, so a rule keyed on the role would be a second way to say
+  // the same thing - and the first one to drift.
+  group: "role on code groups, tab sets and their panels - each is styled by its class",
+  math: "role on the math span - .math carries the rules",
   // Language classes are open-ended: `language-js`, `language-rust`, and
   // whatever a fence declares next. A syntax highlighter owns them, and this
   // package must not fight one.
