@@ -53,6 +53,8 @@ The count comes from an attribute, so one class covers every arity.
 ![A rendered tree](tree.png)
 
 ![A rendered card deck](cards.png)
+
+A caption with an inline ![status icon](status.png) must not become a tile.
 :::
 
 ## Steps

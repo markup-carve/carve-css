@@ -25,6 +25,10 @@
   --carve-accent-ink: #000000;
 }
 
+.carve [role="doc-endnotes"] {
+  font-size: var(--carve-print-footnote-size);
+}
+
 /* A heading should not be the last line on a page, and a construct should not
  * be split across a page break when it can be avoided. */
 .carve :is(h1, h2, h3, h4, h5, h6) {
@@ -78,6 +82,7 @@
  * without adding information. */
 .carve a[href^="http"]::after {
   content: " (" attr(href) ")";
+  display: var(--carve-print-link-destinations);
   font-size: 0.85em;
   color: var(--carve-ink-soft);
   word-break: break-all;
@@ -86,5 +91,5 @@
 /* Two columns of index on paper is right; two columns that break mid-entry is
  * not, and print engines honour break-inside less reliably than browsers. */
 .carve .index-list {
-  columns: 2;
+  columns: var(--carve-print-index-columns);
 }

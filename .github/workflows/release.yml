@@ -81,7 +81,7 @@ jobs:
         run: |
           tarball="$(npm pack --silent)"
           listing="$(tar -tzf "$tarball")"
-          for file in carve tokens core extensions recipes print; do
+          for file in carve tokens core extensions contrast recipes print; do
             printf '%s\n' "$listing" | grep -qx "package/src/$file.css" \
               || { echo "::error::$tarball is missing src/$file.css"; exit 1; }
           done

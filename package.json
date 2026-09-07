@@ -1,6 +1,6 @@
 {
   "name": "@markup-carve/carve-css",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stylesheet for the HTML the Carve markup language renders - admonitions, tab sets, code groups, callouts, figures, footnotes, glossary and index",
   "keywords": ["carve", "markup", "css", "stylesheet", "theme"],
   "license": "MIT",
@@ -21,6 +21,7 @@
     "./tokens.css": "./src/tokens.css",
     "./core.css": "./src/core.css",
     "./extensions.css": "./src/extensions.css",
+    "./contrast.css": "./src/contrast.css",
     "./recipes.css": "./src/recipes.css",
     "./print.css": "./src/print.css",
     "./package.json": "./package.json"
@@ -28,9 +29,13 @@
   "files": ["src"],
   "sideEffects": ["*.css"],
   "scripts": {
-    "test": "node scripts/check-coverage.mjs"
+    "test": "npm run test:coverage && npm run test:quality",
+    "test:coverage": "node scripts/check-coverage.mjs",
+    "test:quality": "node scripts/check-quality.mjs",
+    "test:browsers": "playwright test"
   },
   "devDependencies": {
-    "@markup-carve/carve": "^0.1.4"
+    "@markup-carve/carve": "^0.1.4",
+    "@playwright/test": "^1.55.0"
   }
 }
