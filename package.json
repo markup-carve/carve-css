@@ -1,6 +1,6 @@
 {
   "name": "@markup-carve/carve-css",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "description": "Stylesheet for the HTML the Carve markup language renders - admonitions, tab sets, code groups, callouts, figures, footnotes, glossary and index",
   "keywords": ["carve", "markup", "css", "stylesheet", "theme"],
   "license": "MIT",

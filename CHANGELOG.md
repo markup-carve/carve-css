@@ -4,7 +4,7 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-09-07
+## [0.1.1] - 2026-09-07
 
 ### Added
 
