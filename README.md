@@ -56,6 +56,7 @@ lands in the language, and six themes have to notice separately.
 | `tokens.css` | every colour, space and font, as custom properties |
 | `core.css` | what the core renderer emits, with no extensions |
 | `extensions.css` | what the bundled extensions add |
+| `contrast.css` | optional high-contrast and forced-colors behavior |
 | `recipes.css` | conventions the engine does not know: trees, cards, columns, badges |
 | `print.css` | paper: page breaks, printed URLs, open disclosures |
 | `carve.css` | tokens, core and extensions, in dependency order |
@@ -122,9 +123,16 @@ selector:
 | `--carve-tree-guide` | `--carve-border` | the tree's connector lines |
 | `--carve-tree-indent` | `0.95em` | one level of tree nesting |
 | `--carve-gallery-ratio` | `4 / 3` | gallery tiles |
+| `--carve-gallery-min-size` | `12rem` | minimum responsive gallery tile width |
+| `--carve-table-min-width` | `100%` | optional minimum width for scroll-wrapped tables |
 | `--carve-step-marker` | `1.5rem` | the numbered circle on a step; the text gutter follows it |
 | `--carve-wide-size` | `100%` | how far `::: wide` may spread |
 | `--carve-aside-size` | `14rem` | a floated margin note |
+
+The `.scroll` recipe is the responsive table pattern: it preserves a semantic
+table and contains horizontal overflow on narrow screens. Galleries use
+auto-fitting columns and collapse safely even when their configured minimum is
+wider than the viewport.
 
 Several take a `data-*` attribute from the source instead of a second class -
 `{.tree data-guides="dotted"}`, `{data-columns="3"}`, `[beta]{.badge
@@ -145,6 +153,28 @@ Override tokens, not selectors. That is the whole interface:
 
 Every rule in the package resolves through these, so an override reaches the
 construct without you needing to know which selector styles it.
+
+### High contrast and forced colors
+
+Load the optional preset after the main bundle:
+
+```css
+@import "@markup-carve/carve-css";
+@import "@markup-carve/carve-css/contrast.css";
+```
+
+It follows `prefers-contrast: more` and Windows forced-colors mode. An
+application can request the complete high-contrast palette explicitly with
+`data-carve-contrast="high"` on the root, or retain its normal palette with
+`data-carve-contrast="normal"`.
+
+### Footnote and print controls
+
+Screen footnote size and rule width are `--carve-footnote-size` and
+`--carve-footnote-rule-width`. The print layer also exposes
+`--carve-print-footnote-size`,
+`--carve-print-index-columns` and `--carve-print-link-destinations`; set the
+latter to `none` to suppress URLs printed after external links.
 
 Admonitions take a second level: each type maps to a semantic pair, and the pair
 is itself a token, so recolouring one kind is two lines.
@@ -219,7 +249,7 @@ with no JavaScript), while carve-rs renders `.tabs > .tab` children with no
 interaction. Both shapes are styled here — the second as stacked labelled
 sections rather than as tabs pretending to be clickable.
 
-## The coverage gate
+## Quality gates
 
 ```bash
 npm test
@@ -242,3 +272,7 @@ hollow (`.callout` was satisfied by a `.callouts` rule).
 When the language grows a construct, add it to `test/constructs.crv`. A
 construct missing from the fixture is one the gate cannot see.
 
+`npm test` also verifies contrast ratios for the light, dark, and high-contrast
+palettes and locks down focus, reduced-motion, forced-colors, responsive table,
+gallery, image, footnote, and print selector contracts. `npm run test:browsers`
+exercises computed behavior in Chromium, Firefox, and WebKit.

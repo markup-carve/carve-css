@@ -4,6 +4,21 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-07
+
+### Added
+
+- A high-contrast preset with explicit, `prefers-contrast`, and forced-colors
+  modes.
+- Responsive table and gallery controls, configurable footnote and print
+  styles, and behavior tests in Chromium, Firefox, and WebKit.
+
+### Fixed
+
+- Constrain bare block images without turning inline paragraph images into
+  blocks.
+- Limit gallery tile styling to direct media and media inside direct figures.
+
 ## [0.1.0] - 2026-08-27
 
 ### Added

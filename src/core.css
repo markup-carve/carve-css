@@ -249,10 +249,11 @@
   font-size: var(--carve-font-size-small);
   margin-block-start: var(--carve-space-2);
 }
-.carve figure > img,
-.carve figure > video {
+.carve :is(img, video) {
   max-width: 100%;
   height: auto;
+}
+.carve figure > :is(img, video) {
   display: block;
 }
 
@@ -280,7 +281,12 @@
  * behaves consistently when they do. */
 .carve .table-scroll {
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   margin-block-end: var(--carve-space-4);
+}
+.carve .table-scroll > table {
+  min-width: var(--carve-table-min-width);
+  margin-block-end: 0;
 }
 .carve :is(th, td) {
   border-block-end: var(--carve-border-width) solid var(--carve-rule);
@@ -312,11 +318,13 @@
  * often misses entirely. */
 .carve [role="doc-endnotes"] {
   margin-block-start: var(--carve-space-6);
-  font-size: var(--carve-font-size-small);
+  font-size: var(--carve-footnote-size);
   color: var(--carve-ink-soft);
 }
 .carve [role="doc-endnotes"] hr {
   margin-block: 0 var(--carve-space-3);
+  inline-size: var(--carve-footnote-rule-width);
+  margin-inline-start: 0;
 }
 .carve [role="doc-noteref"] {
   text-decoration: none;

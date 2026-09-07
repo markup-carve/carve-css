@@ -42,6 +42,8 @@ Body.
 ^ The caption
 :::
 
+![An uncaptioned block image](wide-image.png)
+
 ## Tables
 
 |= Column |= Another |
