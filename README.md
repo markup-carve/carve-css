@@ -19,7 +19,7 @@ Then put the class on whatever element holds rendered Carve:
 ```
 
 Everything is scoped under `.carve`, so this cannot reach a host page's own
-markup — which matters when the host is a WordPress admin screen or a Shopware
+markup. That matters when the host is a WordPress admin screen or a Shopware
 storefront rather than a documentation site.
 
 ## Why this exists
@@ -27,10 +27,10 @@ storefront rather than a documentation site.
 Carve's rendered HTML is pinned by the spec: the class on an admonition, a tab
 set, a code group, a figure or a callout is the same out of every engine. Six
 repositories in this organization were nonetheless each writing that CSS by
-hand — `carve-press`, `wp-carve`, `hugo-carve`, `carve-pdf`,
+hand: `carve-press`, `wp-carve`, `hugo-carve`, `carve-pdf`,
 `zensical-carve-demo` and `shopware-carve`.
 
-The cost was not the duplication. It was that each copy covered a **different**
+The duplication was the smaller cost. Each copy covered a **different**
 subset:
 
 | Construct | press | zensical | pdf | wp | hugo |
@@ -53,7 +53,7 @@ lands in the language, and six themes have to notice separately.
 
 | File | What it covers |
 | --- | --- |
-| `tokens.css` | every colour, space and font, as custom properties |
+| `tokens.css` | every color, space and font, as custom properties |
 | `core.css` | what the core renderer emits, with no extensions |
 | `extensions.css` | what the bundled extensions add |
 | `contrast.css` | optional high-contrast and forced-colors behavior |
@@ -177,7 +177,7 @@ Screen footnote size and rule width are `--carve-footnote-size` and
 latter to `none` to suppress URLs printed after external links.
 
 Admonitions take a second level: each type maps to a semantic pair, and the pair
-is itself a token, so recolouring one kind is two lines.
+is itself a token, so recoloring one kind is two lines.
 
 ```css
 .carve .admonition.deprecated {
@@ -189,13 +189,13 @@ is itself a token, so recolouring one kind is two lines.
 The admonition type comes from the source (`::: whatever`), so the vocabulary is
 open. The base `.admonition` rule stands on its own for a type this package has
 never heard of; `note`, `info`, `tip`, `success`, `hint`, `warning`, `caution`,
-`attention`, `danger`, `error`, `bug` and `important` get colours.
+`attention`, `danger`, `error`, `bug` and `important` get colors.
 
 ### Fonts and themes
 
 No `@font-face` and no `@import` of a font host. A stylesheet that reaches out
 for a font cannot be used behind a strict CSP, and every consumer here already
-has a type stack — so `--carve-font-body` and `--carve-font-heading` inherit by
+has a type stack, so `--carve-font-body` and `--carve-font-heading` inherit by
 default.
 
 Dark mode covers all three theme states: `:root` carries the light palette, a
@@ -239,14 +239,14 @@ Both were found by reading real engine output rather than the syntax guide:
   `<section role="doc-endnotes">`, with `[role="doc-noteref"]` on the reference
   and `[role="doc-backlink"]` on the return arrow. A theme selecting
   `.footnotes` styles nothing.
-- **A quote with an attribution is a `<figure>`,** not a `<blockquote>` — the
+- **A quote with an attribution is a `<figure>`,** not a `<blockquote>`: the
   quote is wrapped and the attribution is its `<figcaption>`. A rule targeting
   `blockquote cite` never fires.
 
-There is also a real cross-engine difference worth knowing: carve-js renders a
+The engines also differ in one place: carve-js renders a
 tab set as radio inputs (`.tabs-radio` / `.tabs-label` / `.tabs-panel`, working
 with no JavaScript), while carve-rs renders `.tabs > .tab` children with no
-interaction. Both shapes are styled here — the second as stacked labelled
+interaction. Both shapes are styled here, the second as stacked labeled
 sections rather than as tabs pretending to be clickable.
 
 ## Quality gates
@@ -264,7 +264,7 @@ happened six times: a construct arrives, the stylesheet written from the syntax
 guide has no rule for it, nothing goes red, and the construct renders unstyled
 until someone files it against the integration instead of the theme.
 
-The gate is verified to actually fail — removing a class's only rule turns it
+The gate is verified to fail: removing a class's only rule turns it
 red, and a set of self-assertions on its matcher runs first, because the loose
 version of that matcher shipped before the strict one and made the whole check
 hollow (`.callout` was satisfied by a `.callouts` rule).
