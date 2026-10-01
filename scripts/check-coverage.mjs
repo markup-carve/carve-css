@@ -90,10 +90,8 @@ const UNSTYLED_ELEMENTS = {
   caption: "a table caption; the UA centres it above the table, which is correct",
   col: "a column definition, never rendered on its own",
   colgroup: "a column grouping, never rendered on its own",
-  custom: "an author's own element name from a generic container; not ours to style",
   dfn: "a defining instance; the UA italic is the convention",
   em: "emphasis; the UA italic is the convention",
-  i: "italic without emphasis; the UA style is the whole appearance",
   kbd: "the UA sets a key name in a monospace face, which is what it needs",
   label: "the tab control in css mode; .tabs-label and .code-group-label carry the appearance",
   script: "a diagram renderer's JSON payload; the UA never renders it",
@@ -311,6 +309,19 @@ function authored(source, name) {
   return false;
 }
 
+/*
+ * Whether this ELEMENT was written by the document.
+ *
+ * A raw block passes the author's own HTML through verbatim, so `<x>` in the
+ * source is `<x>` on the page. Corpus case 520 does exactly that, and CI caught
+ * it after a local run on a staler corpus did not. An author's tag is theirs to
+ * style, which is also what the `custom` exemption used to say about the one
+ * spelling of this somebody had noticed.
+ */
+function authoredElement(source, name) {
+  return new RegExp(`<${escapeForRegExp(name)}(?![\\w-])`, "i").test(source);
+}
+
 function exemptReason(name) {
   if (name in UNSTYLED) return { reason: UNSTYLED[name], key: name };
   for (const [prefix, reason] of Object.entries(UNSTYLED.__prefixes)) {
@@ -435,6 +446,7 @@ for (const configuration of CONFIGURATIONS) {
     }
     for (const match of html.matchAll(/<([a-zA-Z][a-zA-Z0-9]*)[\s>/]/g)) {
       const element = match[1].toLowerCase();
+      if (authoredElement(input.source, element)) continue;
       seenNames.add(element);
       if (isElementStyled(css, element)) continue;
       if (element in UNSTYLED_ELEMENTS) {
