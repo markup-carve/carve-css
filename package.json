@@ -36,6 +36,6 @@
   },
   "devDependencies": {
     "@markup-carve/carve": "^0.1.4",
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "1.63.0"
   }
 }
