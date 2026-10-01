@@ -9,8 +9,9 @@ Notable changes to `@markup-carve/carve-css`.
 ### Fixes
 
 - A tab set and a code group show a panel again. Every panel was `display: none`
-  in all three render modes, so `css`, `aria` and `static` each drew an empty
-  box (#15).
+  whatever the output, so both tab modes, `css` and `aria`, and the static
+  render each drew an empty box. `css` is the default, so the mode a consumer
+  gets without asking was affected too (#15).
 - A block image renders as a block and is separated from the block after it
   (#12).
 - A figure's caption sits against the image it captions rather than a block
@@ -28,11 +29,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 - `<mark>`, `pre.diff`, `.line-block`, `.hardbreaks` and `.references` are
   styled rather than left to the user agent (#15).
-- The `aria` and `static` tab shapes are styled: a `<button>` control is reset
-  to match `css` mode, and a static panel's label reads as a heading (#15).
-- The `css` tab mode needs `:has()` - Chromium 105, Safari 15.4, Firefox 121 -
-  and its ladder is bounded at 12 panels. An older browser or a longer tab set
-  shows every panel instead of hiding them, which is the static shape (#15).
+- The `aria` mode and the static render are styled. A `<button>` control is
+  reset so both tab modes draw the same tab set, and a static panel's label
+  reads as a heading rather than as a control for a selection that cannot
+  change (#15).
 - The `.tabs > .tab` rules are retargeted to `section.tabs-panel > h3.tabs-label`,
   the shape static mode emits. All three engines default `tabClass` to
   `tabs-panel`, so the `.tab` rules were already dead. The `.list-table` rules
