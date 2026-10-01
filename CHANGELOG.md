@@ -25,6 +25,11 @@ Notable changes to `@markup-carve/carve-css`.
   disclosure for the summary rules to reach (#15).
 - A nested link, insertion or deletion inside a highlight takes the highlight's
   ink rather than its own, which no palette had paired against that wash (#18).
+- An insertion, deletion or code span inside a highlight draws on the
+  highlight's wash instead of painting a fill of its own, and a nested insertion
+  takes an underline so it stays distinguishable. An editorial comment keeps its
+  own fill, because it annotates the highlighted text rather than being part of
+  it (#19).
 
 ### Improvements
 
