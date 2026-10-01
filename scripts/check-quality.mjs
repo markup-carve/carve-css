@@ -28,14 +28,87 @@ if (/\.gallery\s+:is\(img, video\)/.test(css["recipes.css"])) {
   throw new Error("gallery must not style descendant inline media");
 }
 
-function declarations(source, selector) {
-  const start = source.indexOf(`${selector} {`);
-  if (start < 0) throw new Error(`missing palette selector: ${selector}`);
-  const body = source.slice(source.indexOf("{", start) + 1, source.indexOf("}", start));
-  return Object.fromEntries(
-    [...body.matchAll(/--(carve-[\w-]+):\s*(#[0-9a-f]{6})/gi)]
-      .map((match) => [match[1], match[2].slice(1)]),
+/*
+ * A token's value, PARSED - or an error.
+ *
+ * The first version matched `#[0-9a-f]{6}` and nothing else, so a declaration it
+ * could not read was a declaration it silently dropped, and a pair with a
+ * missing half was reported as "lacks the token" rather than as a value this
+ * script cannot judge. The forced-colors palette is written in CSS system
+ * colour keywords, so every one of its declarations fell through that hole -
+ * which is how `--carve-accent: LinkText` with `--carve-ink-inverse` left at
+ * CanvasText shipped: black on #00009f, 1.50:1, in the one palette the gate
+ * could not read.
+ *
+ * So this returns a TYPED value and throws on anything it does not recognize.
+ * A gate that skips what it cannot parse is worse than no gate: it reports
+ * success over the exact declaration that is wrong.
+ */
+/*
+ * The system colour keywords, and which of them the OS guarantees differ.
+ *
+ * A forced-colors palette carries no numbers to measure - the numbers are the
+ * reader's - so the checkable property is PAIRING. The forced-colors model
+ * guarantees each text keyword is legible against the surface it belongs to,
+ * and says nothing about two text keywords on top of each other. That is
+ * exactly the shipped bug: CanvasText on LinkText is two foregrounds, 1.50:1 in
+ * the Windows high-contrast #1 palette and no better by promise.
+ *
+ * Membership is unordered, because a filled badge is ink-inverse ON accent -
+ * Canvas text on a LinkText fill is the same guaranteed pair read the other
+ * way round, and both are correct.
+ */
+const SYSTEM_COLORS = new Set([
+  "Canvas", "CanvasText", "LinkText", "VisitedText", "ActiveText",
+  "ButtonFace", "ButtonText", "ButtonBorder", "Field", "FieldText",
+  "Highlight", "HighlightText", "Mark", "MarkText", "GrayText",
+  "AccentColor", "AccentColorText", "SelectedItem", "SelectedItemText",
+]);
+const GUARANTEED_PAIRS = new Set([
+  "Canvas|CanvasText", "Canvas|LinkText", "Canvas|VisitedText", "Canvas|ActiveText",
+  "ButtonFace|ButtonText", "Field|FieldText", "Highlight|HighlightText",
+  "Mark|MarkText", "AccentColor|AccentColorText", "SelectedItem|SelectedItemText",
+]);
+const pairKey = (a, b) => [a, b].sort().join("|");
+
+function parseValue(token, raw, where) {
+  const value = raw.trim().replace(/;$/, "").trim();
+  if (/^#[0-9a-f]{6}$/i.test(value)) return { kind: "hex", hex: value.slice(1) };
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    return { kind: "hex", hex: [...value.slice(1)].map((c) => c + c).join("") };
+  }
+  if (SYSTEM_COLORS.has(value)) return { kind: "system", name: value };
+  throw new Error(
+    `cannot parse --${token} in ${where}: ${JSON.stringify(value)}. ` +
+      "Add the form to parseValue in this script rather than letting the palette go unchecked.",
   );
+}
+
+function declarations(source, selector, { inMedia } = {}) {
+  let region = source;
+  if (inMedia) {
+    const at = source.indexOf(inMedia);
+    if (at < 0) throw new Error(`missing media query: ${inMedia}`);
+    region = source.slice(at);
+  }
+  const start = region.indexOf(`${selector} {`);
+  if (start < 0) throw new Error(`missing palette selector: ${selector}`);
+  const body = region.slice(region.indexOf("{", start) + 1, region.indexOf("}", start));
+  const out = {};
+  for (const match of body.matchAll(/--(carve-[\w-]+):([^;}]+)/g)) {
+    out[match[1]] = { raw: match[2], where: `${inMedia ?? ""} ${selector}`.trim() };
+  }
+  return out;
+}
+
+/* Parsed on DEMAND, because a palette selector also carries type and spacing
+ * tokens and `font-body: inherit` is not a colour this script has an opinion
+ * about. Only a token a contrast pair names has to be readable - and for those
+ * an unreadable value is a hard error, not a skip. */
+function colorOf(values, token) {
+  const entry = values[token];
+  if (!entry) return undefined;
+  return parseValue(token, entry.raw, entry.where);
 }
 
 const luminance = (hex) => {
@@ -53,6 +126,13 @@ const palettes = {
   dark: declarations(css["tokens.css"], ':root[data-theme="dark"]'),
   high: declarations(css["contrast.css"], ':root[data-carve-contrast="high"]'),
   "high-dark": declarations(css["contrast.css"], ':root[data-theme="dark"][data-carve-contrast="high"]'),
+  /* The fifth palette, and the one the hex-only parser could not see at all.
+   * It inherits the unremapped tokens from `light`, so a pair whose ink half is
+   * remapped and whose surface half is not is still checked. */
+  forced: {
+    ...declarations(css["tokens.css"], ":root"),
+    ...declarations(css["contrast.css"], ".carve", { inMedia: "@media (forced-colors: active)" }),
+  },
 };
 const pairs = [
   ["carve-ink", "carve-surface"],
@@ -68,12 +148,31 @@ const pairs = [
 ];
 for (const [palette, values] of Object.entries(palettes)) {
   for (const [inkName, surfaceName] of pairs) {
-    const ink = values[inkName];
-    const surface = values[surfaceName];
+    const ink = colorOf(values, inkName);
+    const surface = colorOf(values, surfaceName);
     if (!ink || !surface) throw new Error(`${palette} palette lacks ${inkName}/${surfaceName}`);
-    const ratio = contrast(ink, surface);
+    if (ink.kind === "system" || surface.kind === "system") {
+      if (ink.kind !== surface.kind) {
+        throw new Error(
+          `${palette} ${inkName}/${surfaceName} mixes a system colour with a fixed one ` +
+            `(${ink.name ?? "#" + ink.hex} on ${surface.name ?? "#" + surface.hex}); ` +
+            "remap both halves or neither",
+        );
+      }
+      if (!GUARANTEED_PAIRS.has(pairKey(ink.name, surface.name))) {
+        throw new Error(
+          `${palette} ${inkName}/${surfaceName} is ${ink.name} on ${surface.name}, ` +
+            "which no forced-colors palette guarantees to differ",
+        );
+      }
+      continue;
+    }
+    const ratio = contrast(ink.hex, surface.hex);
     if (ratio < 4.5) throw new Error(`${palette} ${inkName}/${surfaceName} is ${ratio.toFixed(2)}:1`);
   }
 }
 
-console.log("ok: selector contracts and parsed light/dark/high-contrast palettes");
+console.log(
+  `ok: selector contracts and ${Object.keys(palettes).length} parsed palettes ` +
+    `(${Object.keys(palettes).join(", ")})`,
+);

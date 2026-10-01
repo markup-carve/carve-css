@@ -243,21 +243,41 @@ Both were found by reading real engine output rather than the syntax guide:
   quote is wrapped and the attribution is its `<figcaption>`. A rule targeting
   `blockquote cite` never fires.
 
-The engines also differ in one place: carve-js renders a
-tab set as radio inputs (`.tabs-radio` / `.tabs-label` / `.tabs-panel`, working
-with no JavaScript), while carve-rs renders `.tabs > .tab` children with no
-interaction. Both shapes are styled here, the second as stacked labeled
-sections rather than as tabs pretending to be clickable.
+A tab set and a code group each reach the page in **three** shapes, one per
+render mode, and all three are styled here. The split is not between engines:
+carve-js, carve-php and carve-rs agree on all three.
+
+| Mode | Markup | How a panel is shown |
+| --- | --- | --- |
+| `css` (default) | every `.tabs-radio` and `.tabs-label` first, then one `.tabs-panel` per tab | the checked radio's panel, matched by position |
+| `aria` | `role="tablist"` with `<button role="tab" aria-selected>` controls and `role="tabpanel"` panels | the one the runtime has not marked `hidden` |
+| `static` | one `<section class="tabs-panel">` per tab, each opening with an `<h3 class="tabs-label">` | all of them; there is no interaction to have |
+
+Two consequences for a consumer. In `css` mode a panel is not the sibling of
+its own label - the controls only look interleaved because `order: -1` moves
+them - so `.tabs-radio:checked + .tabs-label + .tabs-panel` matches nothing.
+The positional rule replacing it needs `:has()`, i.e. Chromium 105, Safari
+15.4 or Firefox 121; anything older drops it and reveals everything, as the
+static shape does.
+
+Earlier releases also styled `.tabs > .tab`, which no engine emits. All three
+accept `tab` as an input word and render `tabs-panel` regardless of mode.
 
 ## Quality gates
 
 ```bash
+git clone --depth 1 https://github.com/markup-carve/carve .corpus
 npm test
 ```
 
-Renders `test/constructs.crv` through `@markup-carve/carve` with every
-extension on, extracts every class and ARIA role from the output, and fails when
-one has neither a rule nor a named exemption in `scripts/check-coverage.mjs`.
+Renders the **spec corpus** plus the fixtures in `test/` through
+`@markup-carve/carve` in four configurations, extracts every class, ARIA role
+and element from the output, and fails when one has neither a rule nor a named
+exemption in `scripts/check-coverage.mjs`. The corpus is required: point
+`CARVE_CORPUS` at an existing checkout's `tests/corpus` instead of cloning if
+you have one. The gate refuses to run without it rather than falling back to
+the fixtures, because a gate that quietly narrows its input reports success
+over everything it stopped looking at.
 
 This is the point of the package. The failure it prevents is the one that
 happened six times: a construct arrives, the stylesheet written from the syntax
@@ -269,10 +289,27 @@ red, and a set of self-assertions on its matcher runs first, because the loose
 version of that matcher shipped before the strict one and made the whole check
 hollow (`.callout` was satisfied by a `.callouts` rule).
 
-When the language grows a construct, add it to `test/constructs.crv`. A
-construct missing from the fixture is one the gate cannot see.
+The extension list is derived from the package's own exports rather than kept
+by hand. The hand-written one named 17 fewer factories, though measuring that
+gap shrank it: `presets()` already supplied the diagram renderers and the rest
+emit no class of their own, so the derivation is drift prevention rather than a
+repair. What actually hid the diagram rules was the absence of a diagram fence
+in any input. The exemption list reports its own rot: an exemption whose name the engine no longer emits, or
+whose thing turns out to be styled, fails the gate rather than sitting there
+reading plausibly.
 
-`npm test` also verifies contrast ratios for the light, dark, and high-contrast
-palettes and locks down focus, reduced-motion, forced-colors, responsive table,
-gallery, image, footnote, and print selector contracts. `npm run test:browsers`
-exercises computed behavior in Chromium, Firefox, and WebKit.
+When the language grows a construct, the corpus carries it on the next clone.
+`test/constructs.crv` is still worth extending for a construct the corpus does
+not pin.
+
+`npm test` also checks five palettes - light, dark, high, high-dark and the
+forced-colors remap - and locks down focus, reduced-motion, responsive table,
+gallery, image, footnote and print selector contracts. The remap carries no
+numbers to measure, so what it checks is pairing: a system keyword sitting on
+another the OS never promised to differ from. That is how a badge computing
+`CanvasText` on `LinkText`, 1.50:1, came out.
+
+`npm run test:browsers` measures computed behavior in Chromium, Firefox and
+WebKit, panel visibility and the selected control among it. Playwright
+emulates `forced-colors` and `prefers-contrast` in Chromium alone, leaving
+those two layers unmeasured elsewhere rather than green.

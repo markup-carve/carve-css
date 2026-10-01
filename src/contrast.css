@@ -89,6 +89,16 @@
     --carve-border: CanvasText;
     --carve-accent: LinkText;
     --carve-accent-ink: LinkText;
+    /* Remapped for the same reason, from the other side: accent-ink was already
+     * LinkText while its own background stayed a fixed wash, so the declared
+     * pair was a system colour on a hex the UA overrides anyway. Canvas is what
+     * forced colors paints that background, said out loud. */
+    --carve-accent-soft: Canvas;
+    /* Remapped with the accent, not left behind it. A code-callout badge is
+     * ink-inverse ON accent, so leaving this as CanvasText put black on
+     * LinkText - 1.50:1 in the Windows high-contrast #1 palette. Canvas is the
+     * system's own counterpart to LinkText and is guaranteed to contrast. */
+    --carve-ink-inverse: Canvas;
   }
   .carve :focus-visible {
     outline: 3px solid Highlight;

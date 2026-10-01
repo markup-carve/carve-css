@@ -118,6 +118,16 @@
   background: var(--carve-danger-wash);
   color: var(--carve-danger);
 }
+/* `=highlight=` renders as <mark>, which the UA paints a fixed yellow. That
+ * ignores the palette in both themes while its two neighbours above adapt, so a
+ * highlight in a dark document is a light-mode patch. The accent wash is the
+ * pair the quality gate already holds to 4.5:1 in every palette. */
+.carve mark {
+  background: var(--carve-accent-soft);
+  color: var(--carve-accent-ink);
+  border-radius: var(--carve-radius);
+  padding: 0.1em 0.2em;
+}
 /* An editorial comment in critic markup is a note to a human, not content. */
 .carve .critic-comment {
   background: var(--carve-warn-wash);
@@ -157,6 +167,33 @@
   /* Code is the construct most likely to be wider than the page, and the page
    * body must never scroll sideways. */
   overflow-x: auto;
+}
+
+/* `{.diff}` above a fence reaches the page as <pre class="diff">. The engine
+ * marks no individual lines, so there is nothing here to colour green and red -
+ * only the block itself to mark as a diff rather than as a listing. A host that
+ * does mark lines (reveal-carve's plugin wraps them) paints them on top. */
+.carve pre.diff {
+  border-inline-start: var(--carve-accent-width) solid var(--carve-border);
+}
+
+/* `::: |` is a line block: the engine keeps the author's line breaks with <br>,
+ * so the one thing the layer has to do is stop a long line from being re-folded
+ * at a width the author did not choose. */
+.carve .line-block {
+  margin-block: 0 var(--carve-space-4);
+}
+.carve .line-block > p {
+  margin-block-end: 0;
+  text-indent: 0;
+}
+/* `::: \` is the same promise for ordinary prose: every source newline is a
+ * break. It carries paragraphs rather than one, so it keeps block spacing. */
+.carve .hardbreaks {
+  margin-block: 0 var(--carve-space-4);
+}
+.carve .hardbreaks > :last-child {
+  margin-block-end: 0;
 }
 
 .carve hr {

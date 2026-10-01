@@ -110,3 +110,68 @@ An :index[indexed term] in prose.
 - - row two, cell one
   - row two, cell two
 :::
+
+## Diagrams
+
+%% Every diagram renderer the stylesheet has rules for. The spec corpus carries
+%% no diagram fence at all, so without these the rules for .mermaid, .d2 and
+%% the rest are checked against nothing.
+
+```mermaid
+graph TD; a-->b;
+```
+
+```d2
+a -> b
+```
+
+```plantuml
+a -> b
+```
+
+```dot
+digraph { a -> b }
+```
+
+```wavedrom
+{ "signal": [] }
+```
+
+```abc
+X:1
+```
+
+```vega-lite
+{ "mark": "bar" }
+```
+
+```chart
+{ "type": "bar" }
+```
+
+## Diff presentation
+
+{.diff}
+```js
++added
+-removed
+```
+
+## Line breaks
+
+::: |
+a line
+another line
+:::
+
+::: \
+one
+two
+:::
+
+## Highlighted text and references
+
+A =highlighted= span.
+
+::: references
+:::
