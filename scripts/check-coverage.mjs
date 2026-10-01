@@ -55,6 +55,7 @@ const UNSTYLED = {
   // first one to drift.
   group: "role on code groups, tab sets and their panels - each is styled by its class",
   math: "role on the math span - .math carries the rules",
+  img: "role on a diagram placeholder - .mermaid, .chart and their siblings carry the rules",
   // The aria mode's roles, on the same elements the css mode styles by class.
   // The selected state is the one thing a role cannot carry, and that is keyed
   // on [aria-selected] rather than on the role.
@@ -91,6 +92,7 @@ const UNSTYLED_ELEMENTS = {
   i: "italic without emphasis; the UA style is the whole appearance",
   kbd: "the UA sets a key name in a monospace face, which is what it needs",
   label: "the tab control in css mode; .tabs-label and .code-group-label carry the appearance",
+  script: "a diagram renderer's JSON payload; the UA never renders it",
   nav: "the toc's wrapper; .toc carries the rules",
   s: "strikethrough; the UA line is the whole appearance",
   samp: "sample output; the UA monospace face is what it needs",
