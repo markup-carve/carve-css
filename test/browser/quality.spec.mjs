@@ -18,7 +18,9 @@ async function pageWithStyles(page, extras = []) {
       <aside class="admonition note"><p>first</p><img id="admonition-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></aside>
       <div class="wrapper"><img id="container-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></div>
       <ul><li><p>a paragraph</p><img id="item-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></li></ul>
-      <figure><img id="figure-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><figcaption>cap</figcaption></figure>
+      <figure><img id="figure-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><figcaption id="figure-caption">cap</figcaption></figure>
+      <figure class="carve-figure-group"><figure class="carve-figure-panel"><img id="panel-image" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><figcaption id="panel-caption">panel one</figcaption></figure></figure>
+      <figure id="quote-figure"><blockquote id="quote-body"><p>a quoted line</p></blockquote><figcaption id="quote-attribution">the attribution</figcaption></figure>
       <ol><li id="fn1"><img id="footnote-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></li></ol>
       <h3>heading <img id="heading-inline" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></h3>
       <p><a href="#x"><img id="link-inline" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></a></p>
@@ -156,4 +158,70 @@ test("a promoted image is separated from the block after it", async ({ page }) =
   for (const id of ["inline", "pair-inline-a", "cell-inline", "heading-inline"]) {
     await expect(page.locator(`#${id}`), `#${id} must gain no margin`).toHaveCSS("margin-bottom", "0px");
   }
+});
+
+/*
+ * A caption belongs to the image above it, so the block-image margin must not
+ * reach inside a figure. The regression it guards is #12's own margin: with
+ * `figure` in the margin's parent set, the image's bottom margin collapsed
+ * against the caption's start margin and the caption read as a separate block.
+ * Both the plain figure and the composite figure's panel are measured, because
+ * the engine emits a captioned image as `figure.carve-figure-group >
+ * figure.carve-figure-panel > img + figcaption` and the panel is a figure too.
+ *
+ * The distance is asserted as a number rather than as a declaration, since the
+ * declaration that produced it was present and correct in both states.
+ */
+test("a caption sits against the image it captions", async ({ page }) => {
+  await pageWithStyles(page);
+  const distance = (image, caption) => page.evaluate(([a, b]) =>
+    document.getElementById(b).getBoundingClientRect().top
+      - document.getElementById(a).getBoundingClientRect().bottom, [image, caption]);
+  const caption = await page.locator("#figure-caption").evaluate((node) =>
+    parseFloat(getComputedStyle(node).marginBlockStart));
+  expect(caption).toBeCloseTo(8, 1);
+  expect(await distance("figure-block", "figure-caption"), "a figure's caption").toBeCloseTo(caption, 1);
+  expect(await distance("panel-image", "panel-caption"), "a composite panel's caption").toBeCloseTo(caption, 1);
+  await expect(page.locator("#figure-block")).toHaveCSS("margin-bottom", "0px");
+  await expect(page.locator("#panel-image")).toHaveCSS("margin-bottom", "0px");
+  /* The display half is unchanged: a figure's image is still a block. Without
+   * this the fix could be "drop figure from both sets". */
+  await expect(page.locator("#figure-block")).toHaveCSS("display", "block");
+  await expect(page.locator("#panel-image")).toHaveCSS("display", "block");
+});
+
+/*
+ * An attribution reaches its quote by a different path - the engine emits a
+ * quote with one as `figure > blockquote + figcaption`, so the blockquote's own
+ * block margin is what the caption collapses against, not an image's. Pinned
+ * because a later reading of the caption rules has to account for it.
+ */
+test("an attribution sits under the quote it attributes", async ({ page }) => {
+  await pageWithStyles(page);
+  const gap = await page.evaluate(() =>
+    document.getElementById("quote-attribution").getBoundingClientRect().top
+      - document.getElementById("quote-body").getBoundingClientRect().bottom);
+  expect(gap).toBeCloseTo(16, 1);
+  await expect(page.locator("#quote-body")).toHaveCSS("margin-bottom", "16px");
+});
+
+/*
+ * A block image outside a figure keeps its separation. This is the half that
+ * makes the figure exception an exception rather than a removal.
+ */
+test("a block image outside a figure keeps its bottom margin", async ({ page }) => {
+  await pageWithStyles(page);
+  for (const id of ["root-block", "quote-block", "container-block", "pair-block-a"]) {
+    await expect(page.locator(`#${id}`), `#${id} must keep its margin`).toHaveCSS("margin-bottom", "16px");
+  }
+  /* A trailing image in an admonition is cleared by `.admonition > :last-child`
+   * rather than by the image rule. Measured rather than assumed. */
+  await expect(page.locator("#admonition-block")).toHaveCSS("margin-bottom", "0px");
+  const trailing = await page.evaluate(() => {
+    const image = document.getElementById("admonition-block");
+    const host = image.closest(".admonition").getBoundingClientRect();
+    return host.bottom - image.getBoundingClientRect().bottom
+      - parseFloat(getComputedStyle(image.closest(".admonition")).paddingBlockEnd);
+  });
+  expect(trailing).toBeCloseTo(0, 1);
 });

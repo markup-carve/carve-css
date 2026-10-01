@@ -283,6 +283,16 @@
 .carve > :is(img, video),
 .carve :is(section, blockquote, aside, div, figure) > :is(img, video) {
   display: block;
+}
+/* A figure is in the set above but not in this one, and the two parent sets
+ * differ for a reason rather than by an oversight. A figure already carries a
+ * block margin of its own, so its image needs none to be separated from what
+ * follows the figure; what sits after the image is the caption, and a margin
+ * there collapses against the caption's own start margin and pushes the caption
+ * off the image it captions. The composite figure's panel is a figure too, so
+ * one exclusion covers both. */
+.carve > :is(img, video),
+.carve :is(section, blockquote, aside, div) > :is(img, video) {
   margin-block: 0 var(--carve-space-4);
 }
 
