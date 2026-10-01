@@ -75,6 +75,15 @@ jobs:
             || { echo "::error::NPM_TOKEN does not authenticate (HTTP $code)"; exit 1; }
           echo "npm: authenticated as $(node -p 'require("/tmp/npm-who.json").username')"
 
+      # `npm test` drives the spec corpus, not the two fixtures in test/, and it
+      # REFUSES to run without one rather than falling back. ci.yml checks the
+      # corpus out for the same reason; this workflow did not, so every release
+      # failed at `npm test` before reaching the publish steps.
+      - name: Check out the spec corpus
+        uses: actions/checkout@v6
+        with:
+          repository: markup-carve/carve
+          path: .corpus
       - run: npm install --no-audit --no-fund
       - run: npm test
 
