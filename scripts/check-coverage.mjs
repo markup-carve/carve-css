@@ -21,7 +21,11 @@
  *                                       how three modes of the same extension
  *                                       get measured instead of one
  *   it kept a hand-written list of   -> now derived from the package's own
- *   extension factories, 17 short       exports, so it cannot drift
+ *   extension factories, 17 short       exports, so it cannot drift. Measured:
+ *                                       that gap reached no class the old list
+ *                                       missed, because presets() carried the
+ *                                       diagram renderers. The input was the
+ *                                       hole there, not the list.
  *
  * And the exemption list reports its own rot: an exemption whose name the
  * engine no longer emits, or whose thing is styled after all, is a line nobody
@@ -164,10 +168,22 @@ function collectInputs(corpus) {
 /*
  * Every extension the package exports, DERIVED.
  *
- * The list this replaced was written by hand and was 17 factories short -
- * including every diagram renderer the stylesheet has rules for, so the rules
- * for `.mermaid`, `.d2`, `.chart` and the rest were never checked against
- * anything. The nine selectors involved happened to be right, by luck.
+ * The list this replaced was written by hand and named 17 fewer factories than
+ * the package exports. Measured, that gap was smaller than it looks and the
+ * measurement is worth keeping: `presets()` already supplied all eight diagram
+ * renderers, and the other nine are transforms that emit no class of their own,
+ * so on today's inputs the derivation reaches nothing the hand list did not.
+ *
+ * It is here as prevention rather than as a fix. A factory added to the package
+ * tomorrow is covered without anybody editing this file, which is the only
+ * property a hand-written list cannot have. The floor below is what makes that
+ * load-bearing: a derivation that silently stops matching fails here instead of
+ * reporting a clean run over three extensions.
+ *
+ * What DID hide the diagram rules was the input, not the factory list - the
+ * corpus spells no diagram fence in any of its 1860 cases, so the rules for
+ * `.mermaid` and its siblings were measured against nothing until
+ * test/constructs.crv grew one.
  *
  * An export qualifies by behaving like a factory: a lower-cased function that
  * takes no required argument and returns an object with a `name`, which is what

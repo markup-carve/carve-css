@@ -289,10 +289,12 @@ red, and a set of self-assertions on its matcher runs first, because the loose
 version of that matcher shipped before the strict one and made the whole check
 hollow (`.callout` was satisfied by a `.callouts` rule).
 
-The extension list is **derived** from the package's own exports rather than
-kept by hand, because the hand-written one ran 17 factories short - including
-every diagram renderer this stylesheet has rules for. The exemption list
-reports its own rot: an exemption whose name the engine no longer emits, or
+The extension list is derived from the package's own exports rather than kept
+by hand. The hand-written one named 17 fewer factories, though measuring that
+gap shrank it: `presets()` already supplied the diagram renderers and the rest
+emit no class of their own, so the derivation is drift prevention rather than a
+repair. What actually hid the diagram rules was the absence of a diagram fence
+in any input. The exemption list reports its own rot: an exemption whose name the engine no longer emits, or
 whose thing turns out to be styled, fails the gate rather than sitting there
 reading plausibly.
 
