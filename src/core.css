@@ -136,6 +136,28 @@
 .carve mark ins {
   color: inherit;
 }
+/* And its own fill, which paints a rectangle inside the wash and breaks the one
+ * thing a highlight does. A highlight claims a region of content; the wash is
+ * that region's surface, so a nested inline draws on it rather than over it.
+ *
+ * An editorial comment is the exception below, and an insertion or deletion
+ * HOSTING a fill keeps it: there the outer element claims the content changed,
+ * and the content's own rendering is what shows what changed. */
+.carve mark :is(code, del, ins) {
+  background: none;
+}
+/* The fill was the insertion's only remaining signal once its ink was given up
+ * above, so without this an insertion inside a highlight is indistinguishable
+ * from plain highlighted text - measured, not assumed. A decoration composes
+ * with a fill instead of competing with it, and it pairs with the deletion's
+ * line-through, which the base rule never removed. */
+.carve mark ins {
+  text-decoration: underline;
+}
+/* An editorial comment keeps its fill inside a highlight, and its own ink with
+ * it. It is a note ABOUT the highlighted text rather than part of it, so
+ * reading as a separate object is the thing it has to do; interrupting the wash
+ * is correct there in a way it is not for an insertion. */
 /* An editorial comment in critic markup is a note to a human, not content. */
 .carve .critic-comment {
   background: var(--carve-warn-wash);
