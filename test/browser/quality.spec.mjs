@@ -10,8 +10,11 @@ async function pageWithStyles(page, extras = []) {
       <section><img id="block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='600'/>"></section>
       <p>Inline <img id="inline" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></p>
       <ul><li>Inline <img id="list-inline" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></li></ul>
-      <div class="gallery"><img id="tile" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><p>caption <img id="nested" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></p></div>
-      <div class="scroll"><table><tbody><tr><td>wide table</td></tr></tbody></table></div>
+      <div class="gallery" id="tile-strip"><img id="tile" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><p>caption <img id="nested" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></p></div>
+      <div class="scroll" id="scroll-table"><table><tbody><tr><td>wide table</td></tr></tbody></table></div>
+      <div class="gallery" id="tile-grid"><img id="tile-a" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><img id="tile-b" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><img id="tile-c" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><img id="tile-d" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></div>
+      <div class="gallery"><figure><img id="tile-figure" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"><figcaption id="tile-caption">cap</figcaption></figure></div>
+      <div class="scroll" id="scroll-media"><img id="scroll-image" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></div>
       <section role="doc-endnotes"><hr><ol><li>note</li></ol></section>
       <img id="root-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>">
       <section><blockquote><img id="quote-block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10'/>"></blockquote></section>
@@ -57,10 +60,10 @@ test("focus remains visible and reduced motion removes transitions", async ({ pa
 test("responsive recipes remain contained at a narrow viewport", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await pageWithStyles(page);
-  await page.locator(".scroll").evaluate((node) => node.style.setProperty("--carve-table-min-width", "36rem"));
-  const gallery = await page.locator(".gallery").boundingBox();
-  const table = await page.locator(".scroll table").boundingBox();
-  const scroller = await page.locator(".scroll").evaluate((node) => ({ width: node.clientWidth, scroll: node.scrollWidth }));
+  await page.locator("#scroll-table").evaluate((node) => node.style.setProperty("--carve-table-min-width", "36rem"));
+  const gallery = await page.locator("#tile-strip").boundingBox();
+  const table = await page.locator("#scroll-table table").boundingBox();
+  const scroller = await page.locator("#scroll-table").evaluate((node) => ({ width: node.clientWidth, scroll: node.scrollWidth }));
   expect(gallery.width).toBeLessThanOrEqual(320);
   expect(table.width).toBeGreaterThan(scroller.width);
   expect(scroller.scroll).toBeGreaterThan(scroller.width);
@@ -224,4 +227,63 @@ test("a block image outside a figure keeps its bottom margin", async ({ page }) 
       - parseFloat(getComputedStyle(image.closest(".admonition")).paddingBlockEnd);
   });
   expect(trailing).toBeCloseTo(0, 1);
+});
+
+/*
+ * A gallery tile is one of two shapes - the engine emits a lone block image as
+ * a bare `<img>` and a captioned one as a `<figure>` - and only the bare one
+ * had this defect. The grid's `gap` already separates the tiles, so core's
+ * block-image margin was 16px of dead height per row that separated no
+ * caption. The figure tile is measured too, since its reset arrives by a
+ * different route (#13's figure exclusion plus this file's `> figure` rule) and
+ * a change to either would show up here.
+ *
+ * The row-to-row distance is the assertion that matters: a grid item's margin
+ * sits inside its grid area, so the margin was added to the row track rather
+ * than collapsing anywhere. It is read as a number because the declaration was
+ * present and plausible in the broken state.
+ */
+test("a gallery tile carries no margin and its rows are spaced by the gap", async ({ page }) => {
+  await pageWithStyles(page);
+  await page.setViewportSize({ width: 480, height: 900 });
+  const gap = await page.locator("#tile-grid").evaluate((node) =>
+    parseFloat(getComputedStyle(node).rowGap));
+  expect(gap).toBeCloseTo(12, 1);
+  for (const id of ["tile-a", "tile-b", "tile-c", "tile-d", "tile-figure"]) {
+    await expect(page.locator(`#${id}`), `#${id} must carry no bottom margin`).toHaveCSS("margin-bottom", "0px");
+  }
+  const rows = await page.evaluate(() => {
+    const box = (id) => document.getElementById(id).getBoundingClientRect();
+    return { first: box("tile-a").top, second: box("tile-c").top, distance: box("tile-c").top - box("tile-a").bottom };
+  });
+  expect(rows.second, "the gallery must wrap to a second row").toBeGreaterThan(rows.first);
+  expect(rows.distance, "row-to-row spacing is the gap alone").toBeCloseTo(gap, 1);
+  /* A tile is still sized and laid out as a tile. Without this the fix could be
+   * "drop the gallery sizing rule". */
+  await expect(page.locator("#tile-a")).toHaveCSS("object-fit", "cover");
+  await expect(page.locator("#tile-a")).toHaveCSS("display", "block");
+});
+
+/*
+ * The same dead height in a scroll container, which reaches it by a different
+ * route: the container establishes a formatting context, so a trailing margin
+ * cannot collapse out and stacks on the container's own spacing. Only the last
+ * child is cleared, so the distance between two stacked images inside one
+ * scroll container is asserted to be unchanged.
+ */
+test("a trailing image in a scroll container adds no height below itself", async ({ page }) => {
+  await pageWithStyles(page);
+  await expect(page.locator("#scroll-image")).toHaveCSS("margin-bottom", "0px");
+  const trailing = await page.evaluate(() =>
+    document.getElementById("scroll-media").getBoundingClientRect().bottom
+      - document.getElementById("scroll-image").getBoundingClientRect().bottom);
+  expect(trailing).toBeCloseTo(0, 1);
+  const stacked = await page.evaluate(() => {
+    const host = document.getElementById("scroll-media");
+    const extra = document.createElement("img");
+    extra.src = host.firstElementChild.src;
+    host.append(extra);
+    return extra.getBoundingClientRect().top - host.firstElementChild.getBoundingClientRect().bottom;
+  });
+  expect(stacked, "two stacked images stay separated").toBeCloseTo(16, 1);
 });
