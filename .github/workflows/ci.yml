@@ -90,9 +90,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: npm install --no-audit --no-fund
-      # The image ships one browser build per Playwright version. If the pinned
-      # devDependency ever moves off the image tag, the browsers on disk are the
-      # wrong build, so refuse here rather than testing whatever is present.
+      # The image ships one browser build per Playwright version, so the tag
+      # above and the exact @playwright/test pin in package.json move together
+      # or not at all. Bumping one alone leaves the browsers on disk built for
+      # the other version, so this refuses the job instead of testing whatever
+      # is present. No dependency bot runs on this repository today; if one is
+      # added, it will bump package.json and leave the tag behind, and this is
+      # the step that will say so.
       - name: The image and the pinned Playwright agree
         run: |
           set -eu
