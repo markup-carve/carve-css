@@ -20,6 +20,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+      # The coverage gate drives the spec corpus, not the two fixtures in
+      # test/. It REFUSES to run without one rather than falling back, so this
+      # step is load-bearing: drop it and the job fails loudly instead of
+      # reporting success over a surface it never rendered.
+      - name: Check out the spec corpus
+        uses: actions/checkout@v6
+        with:
+          repository: markup-carve/carve
+          path: .corpus
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
