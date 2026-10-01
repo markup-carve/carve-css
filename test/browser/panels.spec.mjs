@@ -19,6 +19,7 @@
  */
 import { test, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 import * as carve from "@markup-carve/carve";
 
 const src = fileURLToPath(new URL("../../src/", import.meta.url));
@@ -181,4 +182,201 @@ test("a callout badge keeps a contrasting pair under forced colors", async ({ pa
     return { color: style.color, background: style.backgroundColor };
   });
   expect(pair.color, "a badge's ink and its fill must not be the same colour").not.toBe(pair.background);
+});
+
+/*
+ * The reveal ladder, EXHAUSTIVELY. The rules below replaced a
+ * `.tabs:has(.tabs-radio:nth-of-type(N):checked)` compound with the sibling
+ * form five host stylesheets already use, and the reason is measurable rather
+ * than aesthetic: `:has()` takes a descendant, so a NESTED tab set answered for
+ * its parent. The next four tests are the cases that separate the two forms.
+ */
+
+function tabsSource(count) {
+  const lines = ["::: tabs"];
+  for (let i = 1; i <= count; i++) lines.push(`::: tab "T${i}"`, `body ${i}`, ":::");
+  lines.push(":::", "");
+  return lines.join("\n");
+}
+
+function codeGroupSource(count) {
+  const lines = ["::: code-group"];
+  for (let i = 1; i <= count; i++) lines.push("``` js [f" + i + ".js]", "a" + i, "```");
+  lines.push(":::", "");
+  return lines.join("\n");
+}
+
+async function styled(page, html) {
+  await page.setContent(`<article class="carve">${html}</article>`);
+  for (const file of ["tokens.css", "core.css", "extensions.css"]) {
+    await page.addStyleTag({ path: `${src}${file}` });
+  }
+}
+
+/* Which panels a reader can actually see, by position, 1-based. `display` alone
+ * is not enough: the rule being replaced left panels at height 0. */
+const visiblePanels = (page, selector) =>
+  page.$$eval(selector, (nodes) =>
+    nodes
+      .map((node, index) =>
+        getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0 ? index + 1 : 0)
+      .filter(Boolean));
+
+for (const [construct, source, control, panel] of [
+  ["a tab set", tabsSource(4), ".tabs > .tabs-label", ".tabs > .tabs-panel"],
+  ["a code group", codeGroupSource(4), ".code-group > .code-group-label", ".code-group > .code-group-panel"],
+]) {
+  test(`${construct} reveals the panel of whichever radio is checked, and only that one`, async ({ page }) => {
+    await styled(page, carve.carveToHtml(source, {
+      mode: "interactive",
+      extensions: [carve.tabs({ mode: "css" }), carve.codeGroup({ mode: "css" })],
+    }));
+    /* The label, not the input: the radio is visually hidden underneath it, so
+     * clicking the control a reader can see is both the real path and the only
+     * one a browser will let a test take. */
+    const labels = page.locator(control);
+    expect(await labels.count(), "the radio shape rendered one control per tab").toBe(4);
+    for (let n = 1; n <= 4; n++) {
+      await labels.nth(n - 1).click();
+      expect(
+        await visiblePanels(page, panel),
+        `radio ${n} must reveal panel ${n} and no other`,
+      ).toEqual([n]);
+    }
+  });
+}
+
+/*
+ * The case that chose the selector. Checking a radio of an INNER tab set must
+ * not move the outer one. Under the `:has()` compound it did, in Chromium,
+ * Firefox and WebKit alike: outer panels 1 and 2 were both visible.
+ */
+test("a nested tab set does not reveal a panel of the set around it", async ({ page }) => {
+  const nested = `::: tabs
+::: tab "Outer A"
+::: tabs
+::: tab "Inner 1"
+i1
+:::
+::: tab "Inner 2"
+i2
+:::
+:::
+:::
+::: tab "Outer B"
+ob
+:::
+:::
+`;
+  await styled(page, carve.carveToHtml(nested, {
+    mode: "interactive",
+    extensions: [carve.tabs({ mode: "css" })],
+  }));
+  const inner = page.locator(".tabs .tabs > .tabs-label");
+  expect(await inner.count(), "the engine nested one tab set inside another").toBe(2);
+  await inner.nth(1).click();
+  expect(
+    await visiblePanels(page, ".carve > .tabs > .tabs-panel"),
+    "the outer set still shows only its first panel",
+  ).toEqual([1]);
+  expect(
+    await visiblePanels(page, ".tabs .tabs > .tabs-panel"),
+    "the inner set shows the panel that was checked",
+  ).toEqual([2]);
+});
+
+/*
+ * The ladder is finite because CSS cannot count. Past the bound the set must
+ * degrade to every panel visible - where static mode lands - and not to a blank
+ * box. The hiding rule without the beyond-the-bound reveal loses the content.
+ */
+test("a tab set past the ladder's bound shows every panel rather than none", async ({ page }) => {
+  await styled(page, carve.carveToHtml(tabsSource(15), {
+    mode: "interactive",
+    extensions: [carve.tabs({ mode: "css" })],
+  }));
+  const labels = page.locator(".tabs > .tabs-label");
+  expect(await labels.count()).toBe(15);
+  await labels.nth(0).click();
+  expect(await visiblePanels(page, ".tabs > .tabs-panel"), "inside the bound, one panel").toEqual([1]);
+  await labels.nth(12).click();
+  expect(
+    await visiblePanels(page, ".tabs > .tabs-panel"),
+    "past the bound, a reader must still have something to read",
+  ).toHaveLength(15);
+});
+
+/* The hiding rule is keyed on a CHECKED radio rather than on a radio being
+ * present, so markup that checks none of them reads as static rather than as
+ * blank. The engine always checks the first, so this is the defensive half. */
+test("a radio group with nothing checked shows every panel", async ({ page }) => {
+  const html = carve
+    .carveToHtml(tabsSource(3), { mode: "interactive", extensions: [carve.tabs({ mode: "css" })] })
+    .replace(" checked", "");
+  expect(html, "the fixture really has no checked radio").not.toContain(" checked");
+  await styled(page, html);
+  expect(
+    await visiblePanels(page, ".tabs > .tabs-panel"),
+    "no selection is not a reason to hide everything",
+  ).toHaveLength(3);
+});
+
+/*
+ * `static` is a DOCUMENT render mode, not a tab mode. The README presented the
+ * three shapes in one column headed Mode, which reads as three values of the
+ * same option; a reader following it calls a mode the engine rejects.
+ */
+test("the tab modes are css and aria, and static is the document's", async () => {
+  expect(() => carve.tabs({ mode: "static" }), "static is not a tab mode").toThrow(/static/);
+  expect(() => carve.codeGroup({ mode: "static" }), "nor a code-group mode").toThrow(/static/);
+  for (const mode of ["css", "aria"]) {
+    expect(() => carve.tabs({ mode }), `${mode} is`).not.toThrow();
+  }
+  const html = carve.carveToHtml(tabsSource(2), {
+    mode: "static",
+    extensions: [carve.tabs({ mode: "css" })],
+  });
+  expect(html, "the document mode overrides the tab mode it was given").not.toContain('type="radio"');
+  expect(html, "and emits the static shape").toContain('<section class="tabs-panel">');
+});
+
+/* No rule in this package uses `:has()` any more, which is what lets the README
+ * say the radio shape has no floor beyond nth-of-type. Asserted on the files
+ * because it is a claim about the shipped text, not about one browser. */
+test("no stylesheet depends on :has()", () => {
+  const offenders = [];
+  for (const file of fs.readdirSync(src).filter((name) => name.endsWith(".css"))) {
+    const text = fs.readFileSync(`${src}${file}`, "utf8");
+    const code = text.replace(/\/\*[\s\S]*?\*\//g, "");
+    if (code.includes(":has(")) offenders.push(file);
+  }
+  expect(offenders, "a :has() in a selector gives the whole rule a browser floor").toEqual([]);
+});
+
+/*
+ * An inline inside a highlight takes the highlight's ink. Without the rule an
+ * insertion inside `=...=` computed its own green on the accent wash, a pairing
+ * nothing holds to a contrast ratio. Measured as inheritance rather than as a
+ * literal colour, which is the reader's palette.
+ */
+test("an inline inside a highlight takes the highlight's ink", async ({ page }) => {
+  const html = carve.carveToHtml(
+    "A =mark with {+an insert+}, {-a delete-} and [a link](https://example.com)= inside.\n",
+    {},
+  );
+  expect(html, "the engine nested the inlines inside a mark").toMatch(/<mark>.*<ins>.*<del>.*<a /);
+  await styled(page, html);
+  const inks = await page.evaluate(() => {
+    const mark = document.querySelector("mark");
+    const read = (node) => getComputedStyle(node).color;
+    return {
+      mark: read(mark),
+      ins: read(mark.querySelector("ins")),
+      del: read(mark.querySelector("del")),
+      link: read(mark.querySelector("a")),
+    };
+  });
+  expect(inks.ins, `an insertion in a highlight must not keep its own ink (${inks.ins})`).toBe(inks.mark);
+  expect(inks.del, `nor a deletion (${inks.del})`).toBe(inks.mark);
+  expect(inks.link, `nor a link (${inks.link})`).toBe(inks.mark);
 });
