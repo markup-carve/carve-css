@@ -12,18 +12,19 @@ Notable changes to `@markup-carve/carve-css`.
   whatever the output, so both tab modes, `css` and `aria`, and the static
   render each drew an empty box. `css` is the default, so the mode a consumer
   gets without asking was affected too (#15).
-- A block image renders as a block and is separated from the block after it
-  (#12).
-- A figure's caption sits against the image it captions rather than a block
-  below it (#13).
-- A gallery tile and the last child of a scroll container are spaced by the
-  container's own `gap`, with no extra margin stacked on top of it (#14).
+- A block image renders as a block and is separated from the block after it, so
+  the blank line an author writes between two images reaches the page. A figure's
+  image, a gallery tile and the last child of a scroll container are excluded,
+  because there the spacing belongs to the caption or to the container's own
+  `gap` (#12, #13, #14).
 - Two forced-colors contrast bugs are fixed. `--carve-ink-inverse` was unmapped,
   which left a code-callout badge at about 1.5:1, and `--carve-accent-soft`
   stayed a fixed wash under an already-`LinkText` `--carve-accent-ink` (#15).
 - A color swatch keeps its own color under forced colors (#15).
 - A revealed spoiler's title reads as a heading. The static shape carries no
   disclosure for the summary rules to reach (#15).
+- A nested link, insertion or deletion inside a highlight takes the highlight's
+  ink rather than its own, which no palette had paired against that wash (#18).
 
 ### Improvements
 
@@ -33,10 +34,9 @@ Notable changes to `@markup-carve/carve-css`.
   reset so both tab modes draw the same tab set, and a static panel's label
   reads as a heading rather than as a control for a selection that cannot
   change (#15).
-- The `.tabs > .tab` rules are retargeted to `section.tabs-panel > h3.tabs-label`,
-  the shape static mode emits. All three engines default `tabClass` to
-  `tabs-panel`, so the `.tab` rules were already dead. The `.list-table` rules
-  are gone for the same reason, the extension building a real table now (#15).
+- Past 12 tabs the radio shape shows every panel rather than one. The positional
+  rules that reveal a panel are finite, and a longer set lands where the static
+  render does (#18).
 
 ## [0.1.1] - 2026-09-07
 
