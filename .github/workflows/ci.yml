@@ -73,16 +73,26 @@ jobs:
   browsers:
     name: Browser behavior (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The browsers and their shared libraries are already in this image, so a
+    # run performs no apt fetch and no browser download. That fetch is what
+    # stalled for 9 to 15 minutes and cancelled three runs on 2026-10-01.
+    container: mcr.microsoft.com/playwright:v1.63.0-noble
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
       - run: npm install --no-audit --no-fund
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      # The image ships one browser build per Playwright version. If the pinned
+      # devDependency ever moves off the image tag, the browsers on disk are the
+      # wrong build, so refuse here rather than testing whatever is present.
+      - name: The image and the pinned Playwright agree
+        run: |
+          set -eu
+          image=1.63.0
+          installed=$(npx playwright --version | awk '{print $2}')
+          echo "image=$image installed=$installed"
+          test "$image" = "$installed"
       - run: npx playwright test --project=${{ matrix.browser }}
