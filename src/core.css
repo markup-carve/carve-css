@@ -253,8 +253,37 @@
   max-width: 100%;
   height: auto;
 }
-.carve figure > :is(img, video) {
+/* A BLOCK image - one the engine promoted out of its paragraph - has to read
+ * as a block, or it is indistinguishable from an inline one and the blank line
+ * the author wrote between two images reaches nothing. <img> is inline by
+ * default, so this is the rule that carries the distinction.
+ *
+ * The parent list was read off engine output, and the line it draws is whether
+ * the parent can hold TEXT beside a direct image child. It cannot in any of
+ * these, so a direct child is always a promoted block. It can in `p`, `a`, a
+ * heading and a `figcaption`, and also in `td` and `th`, which emit
+ * `text <img>` as siblings with no paragraph between them. Those are left
+ * alone.
+ *
+ * `li` and `dd` are excluded because no selector can separate the two cases
+ * there, not because they were overlooked. A tight item renders
+ * `<li>text <img> here</li>` and a compact description renders
+ * `<dd>text <img> here</dd>`, which is the same shape a promoted image in a
+ * list item produces. Leaving them inline keeps the inline case correct and
+ * costs a block image in a list item its block.
+ *
+ * The margin is the other half of the fix: a paragraph carries one and a bare
+ * promoted image does not, so `display: block` on its own stacks two images
+ * flush against each other. It is the same bottom-only `margin-block` every
+ * other block in this file uses, which is why there is no collapsing to reason
+ * about - a promoted image as the first child of a container adds nothing above
+ * itself, and `.admonition > :last-child` already clears the last one. The
+ * margin sits on this selector rather than on the sizing rule above so it
+ * cannot reach an inline image inside a paragraph. */
+.carve > :is(img, video),
+.carve :is(section, blockquote, aside, div, figure) > :is(img, video) {
   display: block;
+  margin-block: 0 var(--carve-space-4);
 }
 
 /* A composite figure: one group holding numbered panels. The panels sit side by
