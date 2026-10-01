@@ -77,6 +77,11 @@ jobs:
     # run performs no apt fetch and no browser download. That fetch is what
     # stalled for 9 to 15 minutes and cancelled three runs on 2026-10-01.
     container: mcr.microsoft.com/playwright:v1.63.0-noble
+    # Playwright's own instruction for its image on Actions: the container runs
+    # as root while /github/home belongs to pwuser, and Firefox refuses to
+    # launch from a $HOME it does not own.
+    env:
+      HOME: /root
     timeout-minutes: 10
     strategy:
       fail-fast: false
