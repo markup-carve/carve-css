@@ -9,6 +9,11 @@ const css = Object.fromEntries(
     .map((name) => [name, read(name)]),
 );
 
+/* Pairs the highlight-nesting check below proves are reachable, each with the
+ * nesting that reaches it. Appended to `pairs`, so a reachable pair this gate
+ * discovers is measured in every palette rather than noted. */
+const requiredPairs = [];
+
 const contracts = [
   ["core.css", "bare media sizing", /\.carve :is\(img, video\)\s*\{[^{}]*max-width:\s*100%[^{}]*\}/],
   ["recipes.css", "gallery direct tiles", /\.gallery > :is\(img, video\)[^{]*\{[^{}]*object-fit:\s*cover/],
@@ -20,6 +25,10 @@ const contracts = [
   ["core.css", "footnote sizing", /\[role="doc-endnotes"\]\s*\{[^{}]*font-size:\s*var\(--carve-footnote-size\)/],
   ["print.css", "print links", /a\[href\^="http"\]::after\s*\{[^{}]*display:\s*var\(--carve-print-link-destinations\)/],
   ["print.css", "print index", /\.index-list\s*\{[^{}]*columns:\s*var\(--carve-print-index-columns\)/],
+  /* The insertion's fill is reset inside a highlight and its ink is inherited,
+   * so a decoration is the only signal it has left there. Without one it is
+   * indistinguishable from plain highlighted text. */
+  ["core.css", "nested insertion decoration", /\.carve mark ins\s*\{[^{}]*text-decoration:\s*underline/],
 ];
 for (const [file, name, pattern] of contracts) {
   if (!pattern.test(css[file])) throw new Error(`missing quality contract: ${name} in ${file}`);
@@ -27,6 +36,91 @@ for (const [file, name, pattern] of contracts) {
 if (/\.gallery\s+:is\(img, video\)/.test(css["recipes.css"])) {
   throw new Error("gallery must not style descendant inline media");
 }
+
+/*
+ * Every inline construct that paints a fill is accounted for INSIDE a
+ * highlight.
+ *
+ * `=highlight=` is the one inline that encloses other inlines, so each inline
+ * fill in core.css is reachable on top of the highlight's wash, with an ink
+ * that was never paired with it. The ink half of that shipped in 0.1.2 with no
+ * gate able to see it: every assertion here was on stylesheet TEXT, and the
+ * text was present and plausible in the broken state.
+ *
+ * So this reads the fills out of core.css rather than listing them, and the
+ * default for a construct it does not recognize is to FAIL. A new inline
+ * background rule therefore has to be classified here before it can ship,
+ * which is the property the ink case needed and did not have.
+ *
+ * Two dispositions are allowed, and both end at a pair this script measures:
+ *
+ * - RESET inside a highlight, so the wash shows through. The nested ink is then
+ *   the highlight's own, which `carve-accent-ink`/`carve-accent-soft` covers.
+ * - KEPT inside a highlight, which is correct for a construct that has to read
+ *   as a separate object. Its own ink/fill pair has to be measured.
+ */
+const INLINE_FILLS = new Set(["code", "ins", "del", "mark", ".critic-comment"]);
+const BLOCK_HOSTS = new Set([".carve", ".carve pre", ".carve pre code", ".carve .admonition",
+  '.carve th[scope="col"]', '.carve th[scope="row"]']);
+const NESTED_INK = ["carve-accent-ink", "carve-accent-soft"];
+
+function fillRules(source) {
+  const out = [];
+  for (const [, selector, body] of source.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!/(^|[\s;])background\s*:/.test(body)) continue;
+    const name = selector.split(",").map((part) => part.trim()).join(", ").replace(/\s+/g, " ");
+    const fill = body.match(/background\s*:\s*([^;}]+)/)[1].trim();
+    out.push({ selector: name, fill, ink: body.match(/(?:^|[\s;])color\s*:\s*([^;}]+)/)?.[1].trim() });
+  }
+  return out;
+}
+
+const token = (value) => value.match(/var\(--(carve-[\w-]+)\)/)?.[1];
+const core = fillRules(css["core.css"]);
+const resetInsideMark = core.find((rule) => /^\.carve mark :is\(/.test(rule.selector) && rule.fill === "none");
+if (!resetInsideMark) {
+  throw new Error("core.css must reset the nested fills inside a highlight: .carve mark :is(...) { background: none }");
+}
+const reset = new Set(resetInsideMark.selector.match(/:is\(([^)]*)\)/)[1].split(",").map((part) => part.trim()));
+const inheritsInk = new Set(
+  (css["core.css"].match(/((?:\.carve mark [\w.-]+,\s*)*\.carve mark [\w.-]+)\s*\{\s*color:\s*inherit/)?.[1] ?? "")
+    .split(",").map((part) => part.trim().replace(/^\.carve mark /, "")).filter(Boolean),
+);
+
+for (const rule of core) {
+  if (BLOCK_HOSTS.has(rule.selector) || rule.fill === "none") continue;
+  const construct = rule.selector.replace(/^\.carve /, "");
+  if (!INLINE_FILLS.has(construct)) {
+    throw new Error(
+      `core.css paints ${rule.selector}, which this gate cannot classify. Add it to BLOCK_HOSTS ` +
+        "if it is a block, or to INLINE_FILLS and the highlight-nesting rules in core.css if it is " +
+        "an inline that a highlight can enclose.",
+    );
+  }
+  if (construct === "mark") continue;
+  if (reset.has(construct)) {
+    /* Reset: the nested ink has to be the highlight's, not the construct's own.
+     * A construct that sets no colour inherits it and is fine either way. */
+    if (rule.ink && !inheritsInk.has(construct)) {
+      throw new Error(
+        `.carve ${construct} has its fill reset inside a highlight but keeps its own ink ` +
+          `(${rule.ink}), which is then on the highlight wash. Add it to the ` +
+          "`.carve mark … { color: inherit }` group or keep its fill.",
+      );
+    }
+    continue;
+  }
+  /* Kept: its own ink on its own fill is what reads inside the highlight. */
+  const [ink, fill] = [token(rule.ink ?? ""), token(rule.fill)];
+  if (!ink || !fill) {
+    throw new Error(
+      `.carve ${construct} keeps its fill inside a highlight, so its ink and fill must both be ` +
+        `tokens this gate can pair (ink ${rule.ink ?? "unset"}, fill ${rule.fill}).`,
+    );
+  }
+  requiredPairs.push([ink, fill, `.carve ${construct} inside a highlight`]);
+}
+requiredPairs.push([...NESTED_INK, "an inline whose fill a highlight resets"]);
 
 /*
  * A token's value, PARSED - or an error.
@@ -146,6 +240,9 @@ const pairs = [
   ["carve-danger", "carve-danger-wash"],
   ["carve-neutral", "carve-neutral-wash"],
 ];
+for (const [ink, surface] of requiredPairs) {
+  if (!pairs.some(([a, b]) => a === ink && b === surface)) pairs.push([ink, surface]);
+}
 for (const [palette, values] of Object.entries(palettes)) {
   for (const [inkName, surfaceName] of pairs) {
     const ink = colorOf(values, inkName);
@@ -173,6 +270,6 @@ for (const [palette, values] of Object.entries(palettes)) {
 }
 
 console.log(
-  `ok: selector contracts and ${Object.keys(palettes).length} parsed palettes ` +
-    `(${Object.keys(palettes).join(", ")})`,
+  `ok: selector contracts, ${core.length} fills classified, ${pairs.length} pairs in ` +
+    `${Object.keys(palettes).length} parsed palettes (${Object.keys(palettes).join(", ")})`,
 );
