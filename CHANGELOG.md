@@ -4,6 +4,40 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-01
+
+### Fixes
+
+- A tab set and a code group show a panel again. Every panel was `display: none`
+  in all three render modes, so `css`, `aria` and `static` each drew an empty
+  box (#15).
+- A block image renders as a block and is separated from the block after it
+  (#12).
+- A figure's caption sits against the image it captions rather than a block
+  below it (#13).
+- A gallery tile and the last child of a scroll container are spaced by the
+  container's own `gap`, with no extra margin stacked on top of it (#14).
+- Two forced-colors contrast bugs are fixed. `--carve-ink-inverse` was unmapped,
+  which left a code-callout badge at about 1.5:1, and `--carve-accent-soft`
+  stayed a fixed wash under an already-`LinkText` `--carve-accent-ink` (#15).
+- A color swatch keeps its own color under forced colors (#15).
+- A revealed spoiler's title reads as a heading. The static shape carries no
+  disclosure for the summary rules to reach (#15).
+
+### Improvements
+
+- `<mark>`, `pre.diff`, `.line-block`, `.hardbreaks` and `.references` are
+  styled rather than left to the user agent (#15).
+- The `aria` and `static` tab shapes are styled: a `<button>` control is reset
+  to match `css` mode, and a static panel's label reads as a heading (#15).
+- The `css` tab mode needs `:has()` - Chromium 105, Safari 15.4, Firefox 121 -
+  and its ladder is bounded at 12 panels. An older browser or a longer tab set
+  shows every panel instead of hiding them, which is the static shape (#15).
+- The `.tabs > .tab` rules are retargeted to `section.tabs-panel > h3.tabs-label`,
+  the shape static mode emits. All three engines default `tabClass` to
+  `tabs-panel`, so the `.tab` rules were already dead. The `.list-table` rules
+  are gone for the same reason, the extension building a real table now (#15).
+
 ## [0.1.1] - 2026-09-07
 
 ### Added
