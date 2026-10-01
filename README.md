@@ -243,22 +243,30 @@ Both were found by reading real engine output rather than the syntax guide:
   quote is wrapped and the attribution is its `<figcaption>`. A rule targeting
   `blockquote cite` never fires.
 
-A tab set and a code group each reach the page in **three** shapes, one per
-render mode, and all three are styled here. The split is not between engines:
-carve-js, carve-php and carve-rs agree on all three.
+A tab set and a code group each reach the page in **three** shapes, and all
+three are styled here. The split is not between engines: carve-js, carve-php and
+carve-rs agree on all three.
 
-| Mode | Markup | How a panel is shown |
-| --- | --- | --- |
-| `css` (default) | every `.tabs-radio` and `.tabs-label` first, then one `.tabs-panel` per tab | the checked radio's panel, matched by position |
-| `aria` | `role="tablist"` with `<button role="tab" aria-selected>` controls and `role="tabpanel"` panels | the one the runtime has not marked `hidden` |
-| `static` | one `<section class="tabs-panel">` per tab, each opening with an `<h3 class="tabs-label">` | all of them; there is no interaction to have |
+Two different options choose between them, which is worth stating before the
+table. `tabs({ mode })` and `codeGroup({ mode })` take `css` or `aria`, and
+nothing else - `tabs({ mode: 'static' })` throws. The static shape comes from
+the **document** render mode instead, `carveToHtml(source, { mode: 'static' })`,
+which overrides whichever tab mode the extension was given.
 
-Two consequences for a consumer. In `css` mode a panel is not the sibling of
+| Shape | Selected by | Markup | How a panel is shown |
+| --- | --- | --- | --- |
+| radio (default) | `tabs({ mode: 'css' })` | every `.tabs-radio` and `.tabs-label` first, then one `.tabs-panel` per tab | the checked radio's panel, matched by position |
+| tablist | `tabs({ mode: 'aria' })` | `role="tablist"` with `<button role="tab" aria-selected>` controls and `role="tabpanel"` panels | the one the runtime has not marked `hidden` |
+| static | `carveToHtml(src, { mode: 'static' })` | one `<section class="tabs-panel">` per tab, each opening with an `<h3 class="tabs-label">` | all of them; there is no interaction to have |
+
+One consequence for a consumer. In the radio shape a panel is not the sibling of
 its own label - the controls only look interleaved because `order: -1` moves
-them - so `.tabs-radio:checked + .tabs-label + .tabs-panel` matches nothing.
-The positional rule replacing it needs `:has()`, i.e. Chromium 105, Safari
-15.4 or Firefox 121; anything older drops it and reveals everything, as the
-static shape does.
+them - so `.tabs-radio:checked + .tabs-label + .tabs-panel` matches nothing. The
+rule replacing it pairs radio N with panel N across the sibling combinator,
+which needs no `:has()`: these stylesheets use that selector nowhere, so no rule
+here has a browser floor beyond what `nth-of-type` and custom properties ask
+for. The ladder is finite at 12 because CSS cannot count; past that a tab set
+reveals every panel, which is where static mode lands and is readable.
 
 Earlier releases also styled `.tabs > .tab`, which no engine emits. All three
 accept `tab` as an input word and render `tabs-panel` regardless of mode.

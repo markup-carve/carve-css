@@ -128,6 +128,14 @@
   border-radius: var(--carve-radius);
   padding: 0.1em 0.2em;
 }
+/* An inline inside the highlight keeps its own ink, which puts the insertion
+ * green or the link accent on the highlight wash neither was paired with. The
+ * highlight is the enclosing surface, so its ink is the one that reads. */
+.carve mark a,
+.carve mark del,
+.carve mark ins {
+  color: inherit;
+}
 /* An editorial comment in critic markup is a note to a human, not content. */
 .carve .critic-comment {
   background: var(--carve-warn-wash);
