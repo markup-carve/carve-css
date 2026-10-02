@@ -144,10 +144,10 @@ function corpusDir() {
   process.exit(1);
 }
 
-function collectCss() {
+function collectCss({ except = [] } = {}) {
   const dir = join(root, "src");
   const text = readdirSync(dir)
-    .filter((f) => f.endsWith(".css"))
+    .filter((f) => f.endsWith(".css") && !except.includes(f))
     .map((f) => readFileSync(join(dir, f), "utf8"))
     .join("\n");
   /* Comments out, or the element check reads the prose: these files say
@@ -481,6 +481,12 @@ for (const [css, name, element, want] of [
 }
 
 const css = collectCss();
+/* The per-element pass reads the SCREEN layers only. print.css is loaded
+ * conditionally, often inside `@media print`, and it is where rules get turned
+ * OFF - its `.spoiler { filter: none }` names the class with no element, so
+ * against the whole of src/ it answered that every shape of the construct was
+ * served. A layer that resets a construct is not a layer that serves it. */
+const screenCss = collectCss({ except: ["print.css"] });
 const corpus = corpusDir();
 const { fixtures, cases } = collectInputs(corpus);
 
@@ -609,11 +615,11 @@ if (rendered === 0) {
 const unserved = [];
 for (const [name, elements] of carriers) {
   if (elements.size < 2) continue;
-  if (!isStyled(css, name) || exemptReason(name)) continue;
+  if (!isStyled(screenCss, name) || exemptReason(name)) continue;
   for (const [element, where] of elements) {
-    if (isStyledOnElement(css, name, element)) continue;
+    if (isStyledOnElement(screenCss, name, element)) continue;
     const beside = (companions.get(`${element}|${name}`) ?? []).filter((other) => other !== name);
-    if (beside.some((other) => isStyledOnElement(css, other, element))) continue;
+    if (beside.some((other) => isStyledOnElement(screenCss, other, element))) continue;
     unserved.push(
       `.${name} on <${element}>  (${where}; also on ${[...elements.keys()]
         .filter((other) => other !== element)
