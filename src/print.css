@@ -64,11 +64,14 @@
   font-weight: 600;
 }
 /* A disclosure is closed on screen and has to be open on paper: its content is
- * part of the document, and the reader cannot click it. */
-.carve .spoiler {
+ * part of the document, and the reader cannot click it. Keyed on `details`,
+ * because the class is also an inline `<span class="spoiler">` and forcing that
+ * to a block would put a word of running text on its own line (#25).
+ * `:where()` keeps the specificity the class-only selector had. */
+.carve :where(details).spoiler {
   display: block;
 }
-.carve .spoiler > :not(summary) {
+.carve :where(details).spoiler > :not(summary) {
   display: revert;
 }
 

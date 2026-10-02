@@ -295,15 +295,25 @@
 
 /* --- Spoiler ------------------------------------------------------------- */
 
-/* <details class="spoiler"><summary>. A real disclosure element, so the UA
- * already handles the toggling and the keyboard. */
-.carve .spoiler {
+/* One class, two shapes. The INLINE spoiler is a `<span class="spoiler">` in a
+ * paragraph and the BLOCK one a panel: `<details>` interactive, `<section>`
+ * static, `<div>` when the extension is off. Only the panel wants a box, so the
+ * selector names the element rather than the class alone. Keyed on the class,
+ * the panel's border, fill and padding landed on a blurred word in running text
+ * and shifted the line it sat in (#25).
+ *
+ * `:where()` deliberately, so this stays at the specificity the class-only rule
+ * had. A consumer that already reset the box under its own `.carve span.spoiler`
+ * must keep winning, and raising this layer would silently take that away. */
+.carve :where(details, section, div).spoiler {
   border: var(--carve-border-width) solid var(--carve-rule);
   border-radius: var(--carve-radius);
   padding: var(--carve-space-2) var(--carve-space-3);
   margin-block-end: var(--carve-space-4);
   background: var(--carve-sunk);
 }
+/* A real disclosure element, so the UA already handles the toggling and the
+ * keyboard. */
 .carve .spoiler > summary {
   cursor: pointer;
   font-weight: 600;
@@ -312,7 +322,7 @@
 .carve .spoiler[open] > summary {
   margin-block-end: var(--carve-space-2);
 }
-.carve .spoiler > :last-child {
+.carve :where(details, section, div).spoiler > :last-child {
   margin-block-end: 0;
 }
 /* The static shape is `<section class="spoiler spoiler-revealed">` with an
