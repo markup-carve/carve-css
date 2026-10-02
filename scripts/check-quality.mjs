@@ -38,6 +38,93 @@ if (/\.gallery\s+:is\(img, video\)/.test(css["recipes.css"])) {
 }
 
 /*
+ * A class that two different ELEMENTS carry is keyed on the element, wherever a
+ * box declaration reaches it.
+ *
+ * `.spoiler` is the instance this was written for and the one that shipped
+ * broken. All three engines put it on an inline `<span>` for `:spoiler[text]`
+ * and on a panel for `::: spoiler` - `<details>` interactive, `<section>`
+ * static, `<div>` with the extension off - so a rule keyed on the class alone
+ * gave a blurred word in running text a border, a fill and 8px/12px of padding,
+ * and shifted the line it sat in (#25).
+ *
+ * Nothing here could see that. The coverage gate drives the spec corpus, and
+ * the corpus spells no inline spoiler at all, so the shape never reached a
+ * page; every gate in this file reads stylesheet TEXT, and the text was present
+ * and plausible in the broken state.
+ *
+ * So the check is on the SELECTOR rather than on a rendered box: the compound
+ * that carries the class has to name its elements, and the inline element must
+ * not be among them. A rule whose subject is an element only the panel can
+ * contain is exempt, because that already constrains the shape - `> summary` is
+ * reachable from a `<details>` and from nothing a span can hold.
+ */
+const DUAL_SHAPE = {
+  spoiler: { inline: "span", panel: ["details", "section", "div"], panelOnlySubjects: ["summary"] },
+};
+const BOX_DECLARATION = /(^|[\s;])(border|padding|margin|background|display|inset|float|width|height)[\w-]*\s*:/;
+
+/* Paren-aware: `:is(pre, blockquote, .admonition)` is ONE compound, and a split
+ * on whitespace would tear its argument list into three. */
+function compounds(part) {
+  const out = [];
+  let depth = 0;
+  let current = "";
+  for (const char of part.trim()) {
+    if (char === "(") depth++;
+    if (char === ")") depth--;
+    if (depth === 0 && /[\s>+~]/.test(char)) {
+      if (current) out.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current) out.push(current);
+  return out;
+}
+
+const dualShapeFailures = [];
+for (const [file, source] of Object.entries(css)) {
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, " ");
+  for (const [, selector, body] of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!BOX_DECLARATION.test(body)) continue;
+    for (const part of selector.split(",")) {
+      if (!part.trim()) continue;
+      for (const [name, shape] of Object.entries(DUAL_SHAPE)) {
+        const marker = new RegExp(`\\.${name}(?![\\w-])`);
+        const list = compounds(part);
+        const carrier = list.find((compound) => marker.test(compound));
+        if (!carrier) continue;
+        const subject = list[list.length - 1];
+        if (subject !== carrier && shape.panelOnlySubjects.includes(subject)) continue;
+        const named = [...carrier.matchAll(/(?:^|[(,\s])([a-z][\w-]*)(?=[.:#[),\s]|$)/g)].map((m) => m[1]);
+        const elements = named.filter((element) => element !== name);
+        if (elements.length === 0) {
+          dualShapeFailures.push(
+            `${file}: "${part.trim()}" sets a box on .${name} without naming an element. ` +
+              `.${name} is also an inline <${shape.inline}>, which the box would reach. ` +
+              `Key it on :where(${shape.panel.join(", ")}).${name}, which keeps the specificity ` +
+              "a class-only selector has.",
+          );
+          continue;
+        }
+        if (elements.includes(shape.inline)) {
+          dualShapeFailures.push(
+            `${file}: "${part.trim()}" puts a box on the inline <${shape.inline}>.${name}. ` +
+              "The inline form takes the blur and nothing else: a box there changes the line box " +
+              "height of the paragraph around it.",
+          );
+        }
+      }
+    }
+  }
+}
+if (dualShapeFailures.length) {
+  throw new Error(`a dual-shape class is keyed on the class alone:\n  ${dualShapeFailures.join("\n  ")}`);
+}
+
+/*
  * Every inline construct that paints a fill is accounted for INSIDE a
  * highlight.
  *
@@ -270,6 +357,7 @@ for (const [palette, values] of Object.entries(palettes)) {
 }
 
 console.log(
-  `ok: selector contracts, ${core.length} fills classified, ${pairs.length} pairs in ` +
+  `ok: selector contracts, ${Object.keys(DUAL_SHAPE).length} dual-shape class(es) keyed on their ` +
+    `element, ${core.length} fills classified, ${pairs.length} pairs in ` +
     `${Object.keys(palettes).length} parsed palettes (${Object.keys(palettes).join(", ")})`,
 );
