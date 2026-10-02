@@ -338,6 +338,34 @@
   font-weight: 600;
 }
 
+/* The inline spoiler obscures its text with a blur, which is the whole point of
+ * the construct and shipped missing (#27). A filter is the CSS-only way to do
+ * it, it is what the reference implementations use, and where `filter` is
+ * unsupported the text stays visible - which is the behavior that already
+ * shipped rather than something worse.
+ *
+ * NOT a privacy or security control. The text is in the DOM, selectable and
+ * copyable, and a reader who drags across it gets it. This hides a spoiler from
+ * someone reading the page, and from nobody who is looking for it.
+ *
+ * Keyed on the element, like the panel box above, because the panel must not be
+ * blurred: its content is hidden by the disclosure instead. `:where()` keeps
+ * this at the specificity a class-only rule has, so a consumer's own
+ * `.carve .spoiler` rule still wins on order.
+ *
+ * Reveal is `:hover` and `:focus-within`. The focus half only works where the
+ * host makes the span focusable - a `<span class="spoiler">` carries no
+ * `tabindex` and this layer cannot add one - so there is no keyboard parity
+ * here, and a host that wants it has to supply the attribute. */
+.carve :where(span).spoiler {
+  filter: blur(var(--carve-spoiler-blur));
+}
+/* The static render is `<span class="spoiler spoiler-revealed">`, verified
+ * against the engine. Revealed means revealed, in every mode. */
+.carve :where(span).spoiler:is(:hover, :focus-within, .spoiler-revealed) {
+  filter: none;
+}
+
 /* --- Code callouts ------------------------------------------------------- */
 
 /* A marker inside the code (<b class="callout" data-callout="N">) bound to an

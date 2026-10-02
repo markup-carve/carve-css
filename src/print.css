@@ -74,6 +74,11 @@
 .carve :where(details).spoiler > :not(summary) {
   display: revert;
 }
+/* And a spoiler is never blurred on paper: a blur that cannot be hovered is
+ * just an unreadable passage in a printed document. */
+.carve .spoiler {
+  filter: none;
+}
 
 /* The permalink anchor is hover chrome; on paper it is a stray character. */
 .carve .permalink {

@@ -43,15 +43,19 @@ const SOURCE = [
   "",
 ].join("\n");
 
-async function paint(page, mode) {
+async function paint(page, mode, { print = false } = {}) {
   const extensions = [carve.spoiler()];
   await page.setContent(
     `<article class="carve">${carve.carveToHtml(SOURCE, { mode, extensions })}</article>`,
   );
-  for (const file of ["tokens.css", "core.css", "extensions.css"]) {
+  const files = ["tokens.css", "core.css", "extensions.css"];
+  if (print) files.push("print.css");
+  for (const file of files) {
     await page.addStyleTag({ path: `${src}${file}` });
   }
 }
+
+const NO_FILTER = "none";
 
 const TRANSPARENT = "rgba(0, 0, 0, 0)";
 
@@ -165,4 +169,115 @@ test("a consumer rule at the same specificity still wins", async ({ page }) => {
   await page.addStyleTag({ content: ".carve .spoiler { border-top-width: 7px; border-top-style: solid }" });
   const read = await box(page.locator(".carve details.spoiler"));
   expect(read.borderTop, "the layer must not outrank an equally specific consumer rule").toBe("7px");
+});
+
+/*
+ * The blur, which is the construct.
+ *
+ * A stylesheet-text assertion cannot see whether a word is obscured, and the
+ * rule shipped missing entirely for as long as the layer existed (#27). So
+ * every assertion here reads the COMPUTED filter off the element the engine
+ * rendered. Geometry is the wrong instrument twice over: padding and border on
+ * a non-replaced inline do not feed the line box (CSS 2.1 10.6.1), which is the
+ * trap #25 fell into, and a filter does not affect layout at all.
+ */
+test("an inline spoiler is obscured", async ({ page }) => {
+  await paint(page, "interactive");
+  const inline = page.locator(".carve > p:nth-of-type(1) .spoiler");
+  const filter = await inline.evaluate((element) => getComputedStyle(element).filter);
+  expect(filter, "an inline spoiler must obscure its text").not.toBe(NO_FILTER);
+  expect(filter, "it is obscured with a blur").toMatch(/^blur\(/);
+  /* 0.25em at the 16px default, which is where the measurement put it. */
+  const radius = Number(filter.match(/blur\(([\d.]+)px\)/)[1]);
+  expect(radius, "the blur has to be wide enough to merge the strokes").toBeGreaterThanOrEqual(3);
+  expect(radius, "and narrow enough not to smear into the words around it").toBeLessThanOrEqual(6);
+});
+
+test("hovering an inline spoiler reveals it, and the reveal is not permanent", async ({ page }) => {
+  await paint(page, "interactive");
+  const inline = page.locator(".carve > p:nth-of-type(1) .spoiler");
+  const read = () => inline.evaluate((element) => getComputedStyle(element).filter);
+  expect(await read(), "it starts obscured").not.toBe(NO_FILTER);
+  await inline.hover();
+  expect(await read(), "hovering reveals it").toBe(NO_FILTER);
+  /* Away from the span, in the paragraph after it. */
+  await page.locator(".carve > p:nth-of-type(2)").hover();
+  expect(await read(), "and it is obscured again once the pointer leaves").not.toBe(NO_FILTER);
+});
+
+/*
+ * The revealed shape is never blurred.
+ *
+ * All three engines emit `<span class="spoiler spoiler-revealed">` in static
+ * mode - verified against `carveToHtml` rather than taken on trust - so a
+ * static or paged render has to show the words.
+ */
+test("a revealed inline spoiler is not blurred", async ({ page }) => {
+  await paint(page, "static");
+  const inline = page.locator(".carve > p:nth-of-type(1) .spoiler");
+  await expect(inline).toHaveClass(/\bspoiler-revealed\b/);
+  expect(
+    await inline.evaluate((element) => getComputedStyle(element).filter),
+    "a revealed spoiler shows its text",
+  ).toBe(NO_FILTER);
+});
+
+test("a block spoiler is never blurred, in either mode", async ({ page }) => {
+  for (const mode of ["interactive", "static"]) {
+    await paint(page, mode);
+    const panel = page.locator(".carve details.spoiler, .carve section.spoiler");
+    expect(
+      await panel.evaluate((element) => getComputedStyle(element).filter),
+      "the panel hides its content with the disclosure, not with a blur",
+    ).toBe(NO_FILTER);
+  }
+});
+
+for (const mode of ["interactive", "static"]) {
+  test(`print applies no blur (${mode})`, async ({ page }) => {
+    await page.emulateMedia({ media: "print" });
+    await paint(page, mode, { print: true });
+    const inline = page.locator(".carve > p:nth-of-type(1) .spoiler");
+    expect(
+      await inline.evaluate((element) => getComputedStyle(element).filter),
+      "a blur on paper cannot be hovered, so it is just an unreadable passage",
+    ).toBe(NO_FILTER);
+  });
+}
+
+/*
+ * A blurred spoiler is not a privacy control, and the test says so rather than
+ * only the stylesheet: the text is in the DOM and it is selectable.
+ */
+test("a blurred spoiler's text is still present and selectable", async ({ page }) => {
+  await paint(page, "interactive");
+  const inline = page.locator(".carve > p:nth-of-type(1) .spoiler");
+  expect(await inline.textContent()).toBe("the butler did it");
+  expect(
+    await inline.evaluate((element) => getComputedStyle(element).userSelect),
+    "nothing here claims to stop a reader selecting the text",
+  ).not.toBe("none");
+});
+
+test("an inline mark inside a spoiler is obscured with it", async ({ page }) => {
+  const extensions = [carve.spoiler()];
+  const source = "Ending: :spoiler[the =butler= /did/ ~it~ and a </#top> link] ok.\n";
+  await page.setContent(
+    `<article class="carve">${carve.carveToHtml(source, { mode: "interactive", extensions })}</article>`,
+  );
+  for (const file of ["tokens.css", "core.css", "extensions.css"]) {
+    await page.addStyleTag({ path: `${src}${file}` });
+  }
+  const inline = page.locator(".carve .spoiler");
+  await expect(inline).toHaveCount(1);
+  expect(
+    await inline.evaluate((element) => getComputedStyle(element).filter),
+    "a spoiler holding other inlines is still obscured",
+  ).not.toBe(NO_FILTER);
+  /* The filter is on the spoiler, so everything inside it is obscured by the
+   * same pass rather than each child carrying its own. */
+  const children = await inline.evaluate((element) =>
+    [...element.querySelectorAll("*")].map((child) => getComputedStyle(child).filter));
+  expect(children.length, "the sample has to actually nest something").toBeGreaterThan(0);
+  expect(children.every((value) => value === "none"), "nothing inside sets a filter of its own").toBe(true);
 });
