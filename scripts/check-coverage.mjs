@@ -98,7 +98,10 @@ const UNSTYLED_ELEMENTS = {
   nav: "the toc's wrapper; .toc carries the rules",
   s: "strikethrough; the UA line is the whole appearance",
   samp: "sample output; the UA monospace face is what it needs",
-  span: "the generic inline host; its class carries any appearance",
+  /* No `span` entry: `:where(span).spoiler` names the element, so the element
+   * matcher answers for a bare span too and the exemption could not fire. That
+   * is the matcher's documented blindness to context, not a claim that a bare
+   * span is styled. */
   sub: "the UA baseline shift is the convention",
   tfoot: "a table footer; the table rules reach its cells",
   time: "a machine-readable date reads as the prose around it",
@@ -141,10 +144,10 @@ function corpusDir() {
   process.exit(1);
 }
 
-function collectCss() {
+function collectCss({ except = [] } = {}) {
   const dir = join(root, "src");
   const text = readdirSync(dir)
-    .filter((f) => f.endsWith(".css"))
+    .filter((f) => f.endsWith(".css") && !except.includes(f))
     .map((f) => readFileSync(join(dir, f), "utf8"))
     .join("\n");
   /* Comments out, or the element check reads the prose: these files say
@@ -191,6 +194,8 @@ function collectInputs(corpus) {
 async function extensionFactories() {
   const carve = await import("@markup-carve/carve");
   const names = [];
+  /* The container words the built extensions claim, for `authored()`. */
+  const containers = new Set();
   for (const [name, value] of Object.entries(carve)) {
     if (typeof value !== "function") continue;
     if (name === "presets") continue;
@@ -204,6 +209,7 @@ async function extensionFactories() {
     if (!built || typeof built !== "object" || Array.isArray(built)) continue;
     if (typeof built.name !== "string") continue;
     names.push(name);
+    containers.add(built.name);
   }
   if (names.length < 20) {
     console.error(
@@ -212,7 +218,7 @@ async function extensionFactories() {
     );
     process.exit(1);
   }
-  return { carve, names };
+  return { carve, names, containers };
 }
 
 /*
@@ -288,6 +294,89 @@ function isElementStyled(css, name) {
 }
 
 /*
+ * The compounds of one selector part, paren-aware.
+ *
+ * `:is(pre, blockquote, .admonition)` is ONE compound, and splitting on
+ * whitespace would tear its argument list into three. The same routine as the
+ * quality gate's, for the same reason.
+ */
+/* The comma split has to be paren-aware for the same reason: a comma inside
+ * `:where(details, section, div)` separates arguments, not selectors. */
+function selectorParts(selector) {
+  const out = [];
+  let depth = 0;
+  let current = "";
+  for (const char of selector) {
+    if (char === "(") depth++;
+    if (char === ")") depth--;
+    if (char === "," && depth === 0) {
+      out.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  out.push(current);
+  return out;
+}
+
+function compounds(part) {
+  const out = [];
+  let depth = 0;
+  let current = "";
+  for (const char of part.trim()) {
+    if (char === "(") depth++;
+    if (char === ")") depth--;
+    if (depth === 0 && /[\s>+~]/.test(char)) {
+      if (current) out.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current) out.push(current);
+  return out;
+}
+
+/*
+ * Whether the CSS styles this class ON THIS ELEMENT.
+ *
+ * `isStyled` asks whether any rule anywhere names the class, and that is how
+ * the inline spoiler reached a release with no rule of its own (#27): the panel
+ * rules name `.spoiler`, so the class read as covered while the `<span>` form
+ * had nothing. A layer can style a construct's container and leave the
+ * construct unserved, and the class-level answer cannot tell the two apart.
+ *
+ * Two things have to hold for a rule to count as serving the construct:
+ *
+ *   the SUBJECT carries the class - `.spoiler > summary` styles something a
+ *     spoiler contains, not the spoiler, so it answers for neither shape;
+ *   the subject either names no element, and so reaches every shape, or names
+ *     the one this class actually arrived on.
+ *
+ * Applied to EVERY class would be a different gate and a noisy one. It is
+ * applied to the classes the engine is observed to put on more than one
+ * element, which is derived from the renders rather than listed - a list here
+ * would drift exactly as the factory list did.
+ */
+function isStyledOnElement(css, name, element) {
+  const marker = new RegExp(`\\.${escapeForRegExp(name)}(?![\\w-])`);
+  for (const [, selector] of css.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
+    for (const part of selectorParts(selector)) {
+      if (!part.trim()) continue;
+      const list = compounds(part);
+      const subject = list[list.length - 1];
+      if (!subject || !marker.test(subject)) continue;
+      const named = [...subject.matchAll(/(?:^|[(,\s])([a-z][\w-]*)(?=[.:#[),\s]|$)/g)]
+        .map((match) => match[1])
+        .filter((word) => word !== name);
+      if (named.length === 0 || named.includes(element)) return true;
+    }
+  }
+  return false;
+}
+
+/*
  * Whether this class was written by the DOCUMENT rather than chosen by the
  * engine.
  *
@@ -298,9 +387,15 @@ function isElementStyled(css, name) {
  * which is why neither needs a list of construct names to subtract - a list
  * that would drift exactly as the factory list did.
  */
-function authored(source, name) {
+function authored(source, name, engineContainers = new Set()) {
   const escaped = escapeForRegExp(name);
   if (new RegExp(`\\{[^}]*\\.${escaped}(?![\\w-])`).test(source)) return true;
+  /* A container word an extension CLAIMS is not the author's. `::: spoiler` is
+   * the spoiler extension's own opener, so reading `.spoiler` as an author
+   * class hid the construct from this gate entirely (#27) - which is half of
+   * why a shape with no rule could ship. The claimed words are the names the
+   * driven extensions report, so this cannot drift from what was built. */
+  if (engineContainers.has(name)) return false;
   /* The opener is not anchored to the start of a line: a container nested in a
    * list item is written `- ::: d` and one in a definition `:  ::: d`, so an
    * anchor only matches the flush-left spelling. The run of colons plus the
@@ -366,8 +461,32 @@ for (const [css, name, want] of [
     process.exit(1);
   }
 }
+/* And the per-element matcher, which is the arm #27 added. The third row is the
+ * shipped bug: panel rules alone, asked about the inline shape. */
+for (const [css, name, element, want] of [
+  [".carve :where(details, section, div).spoiler { padding: 0 }", "spoiler", "details", true],
+  [".carve :where(details, section, div).spoiler { padding: 0 }", "spoiler", "span", false],
+  [".carve .spoiler > summary { cursor: pointer }", "spoiler", "span", false],
+  [".carve .spoiler { color: red }", "spoiler", "span", true],
+  [".carve :where(span).spoiler { filter: blur(1px) }", "spoiler", "span", true],
+  [".carve .tabs .spoiler { color: red }", "spoiler", "span", true],
+]) {
+  if (isStyledOnElement(css, name, element) !== want) {
+    console.error(
+      `FAIL: the per-element matcher is broken - isStyledOnElement(${JSON.stringify(css)}, ` +
+        `${JSON.stringify(name)}, ${JSON.stringify(element)}) should be ${want}`,
+    );
+    process.exit(1);
+  }
+}
 
 const css = collectCss();
+/* The per-element pass reads the SCREEN layers only. print.css is loaded
+ * conditionally, often inside `@media print`, and it is where rules get turned
+ * OFF - its `.spoiler { filter: none }` names the class with no element, so
+ * against the whole of src/ it answered that every shape of the construct was
+ * served. A layer that resets a construct is not a layer that serves it. */
+const screenCss = collectCss({ except: ["print.css"] });
 const corpus = corpusDir();
 const { fixtures, cases } = collectInputs(corpus);
 
@@ -383,10 +502,14 @@ if (cases.length < CORPUS_FLOOR) {
   process.exit(1);
 }
 
-const { carve, names } = await extensionFactories();
+const { carve, names, containers } = await extensionFactories();
 const inputs = [...fixtures, ...cases];
 
 const missing = new Map();
+/* class -> element -> where, for the multi-shape pass after the renders, and
+ * the other classes each (element, class) pair arrived alongside. */
+const carriers = new Map();
+const companions = new Map();
 const firedExemptions = new Set();
 const seenNames = new Set();
 let rendered = 0;
@@ -419,10 +542,17 @@ for (const configuration of CONFIGURATIONS) {
     rendered++;
     const where = `${input.name}, ${configuration.label}`;
 
-    for (const match of html.matchAll(/class="([^"]*)"/g)) {
-      for (const name of match[1].split(/\s+/)) {
-        if (!name || authored(input.source, name)) continue;
+    for (const match of html.matchAll(/<([a-zA-Z][\w-]*)\b[^>]*\bclass="([^"]*)"/g)) {
+      const element = match[1].toLowerCase();
+      for (const name of match[2].split(/\s+/)) {
+        if (!name || authored(input.source, name, containers)) continue;
         seenNames.add(name);
+        /* Which ELEMENTS carry this class, for the per-element pass below. Only
+         * recorded for a class that has a rule at all - an unstyled one is
+         * already reported here. */
+        if (!carriers.has(name)) carriers.set(name, new Map());
+        if (!carriers.get(name).has(element)) carriers.get(name).set(element, where);
+        companions.set(`${element}|${name}`, match[2].split(/\s+/).filter(Boolean));
         if (isStyled(css, name)) continue;
         const exempt = exemptReason(name);
         if (exempt) {
@@ -460,6 +590,53 @@ for (const configuration of CONFIGURATIONS) {
 
 if (rendered === 0) {
   console.error("FAIL: nothing was rendered");
+  process.exit(1);
+}
+
+/*
+ * A class the engine puts on more than one ELEMENT is served on each of them.
+ *
+ * `.spoiler` is the case this was written for. It arrives on a `<span>` for
+ * `:spoiler[text]` and on a panel for `::: spoiler`, and the panel rules alone
+ * answered the class-level question for both - so the inline shape shipped with
+ * no rule, fully visible, and this gate reported it styled (#27).
+ *
+ * The set is DERIVED from the renders rather than listed. A construct that
+ * grows a second shape tomorrow is covered without anybody editing this file,
+ * and a construct that loses one stops being asked.
+ *
+ * One thing is excused, and derived too: a class that shares its element with
+ * another class served on that element. `spoiler-revealed` is a state the
+ * engine adds beside `.spoiler` on the same tag, so the construct IS served
+ * there and a second rule naming the state would say nothing. This is a real
+ * weakening - two construct classes on one element would excuse each other -
+ * and the class-level check above still requires both to have a rule at all.
+ */
+const unserved = [];
+for (const [name, elements] of carriers) {
+  if (elements.size < 2) continue;
+  if (!isStyled(screenCss, name) || exemptReason(name)) continue;
+  for (const [element, where] of elements) {
+    if (isStyledOnElement(screenCss, name, element)) continue;
+    const beside = (companions.get(`${element}|${name}`) ?? []).filter((other) => other !== name);
+    if (beside.some((other) => isStyledOnElement(screenCss, other, element))) continue;
+    unserved.push(
+      `.${name} on <${element}>  (${where}; also on ${[...elements.keys()]
+        .filter((other) => other !== element)
+        .map((other) => `<${other}>`)
+        .join(", ")})`,
+    );
+  }
+}
+if (unserved.length > 0) {
+  console.error(
+    `FAIL: ${unserved.length} multi-element class(es) have a rule for one shape and not for another:\n`,
+  );
+  for (const line of unserved) console.error(`  ${line}`);
+  console.error(
+    "\nA rule whose subject carries the class and names no element serves every shape; one that\n" +
+      "names elements serves only those. A rule on something the construct CONTAINS serves neither.",
+  );
   process.exit(1);
 }
 
@@ -512,5 +689,7 @@ if (dead.length > 0) {
 console.log(
   `ok: ${inputs.length} input(s) x ${CONFIGURATIONS.length} configuration(s) = ${rendered} render(s) ` +
     `(${refused} corpus case(s) the engine refuses), ${names.length} derived extension(s); ` +
-    "every class, role and element is styled or exempt, and every exemption still fires",
+    "every class, role and element is styled or exempt, every exemption still fires, and " +
+    `each of ${[...carriers.values()].filter((elements) => elements.size > 1).length} ` +
+    "multi-element class(es) is served on every element it arrives on",
 );
