@@ -4,6 +4,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Quote bodies use document text contrast, with a visible border, paragraph spacing and aligned attribution.
+
 ## [0.1.3] - 2026-10-08
 
 ### Fixes

@@ -23,6 +23,8 @@
   --carve-accent: #000000;
   --carve-accent-soft: #f2f2f2;
   --carve-accent-ink: #000000;
+  --carve-quote-ink: var(--carve-ink);
+  --carve-quote-border: var(--carve-border);
 }
 
 .carve [role="doc-endnotes"] {

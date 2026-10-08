@@ -181,10 +181,22 @@
 }
 
 .carve blockquote {
-  border-inline-start: var(--carve-accent-width) solid var(--carve-border);
-  padding-inline-start: var(--carve-space-4);
+  border-inline-start: var(--carve-quote-border-width, var(--carve-accent-width)) solid var(--carve-quote-border, color-mix(in srgb, var(--carve-ink) 50%, var(--carve-surface)));
+  padding-inline-start: var(--carve-quote-padding, var(--carve-space-4));
+  padding-block: var(--carve-space-1);
   margin-inline: 0;
-  color: var(--carve-ink-soft);
+  color: var(--carve-quote-ink, var(--carve-ink));
+  text-align: start;
+}
+.carve blockquote > p {
+  margin-block: 0 var(--carve-quote-gap, var(--carve-space-3));
+}
+.carve blockquote > :first-child { margin-block-start: 0; }
+.carve blockquote > :last-child:not(img):not(video) { margin-block-end: 0; }
+.carve figure > blockquote { margin-block-end: 0; }
+.carve figure > blockquote + figcaption {
+  text-align: start;
+  padding-inline-start: calc(var(--carve-quote-padding, var(--carve-space-4)) + var(--carve-quote-border-width, var(--carve-accent-width)));
 }
 
 .carve pre {
