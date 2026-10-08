@@ -4,6 +4,8 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-08
+
 ### Fixes
 
 - An inline spoiler blurs its text. `:spoiler[text]` reached the page with no
@@ -15,7 +17,8 @@ Notable changes to `@markup-carve/carve-css`.
 - The four extended task states are drawn apart. `[-]`, `[_]`, `[>]` and `[?]`
   all render the same unchecked box, and the engine names the authored
   character on the item as `data-task-state`; a dropped task is now struck
-  through and dimmed, and paused, deferred and maybe each outline the box.
+  through and dimmed, and paused, deferred and maybe each outline the box
+  (#29).
 
 ## [0.1.2] - 2026-10-01
 
