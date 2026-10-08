@@ -84,6 +84,8 @@
     --carve-sunk: Canvas;
     --carve-raised: Canvas;
     --carve-ink: CanvasText;
+    --carve-quote-ink: CanvasText;
+    --carve-quote-border: CanvasText;
     --carve-ink-soft: CanvasText;
     --carve-rule: CanvasText;
     --carve-border: CanvasText;
@@ -105,5 +107,14 @@
   }
   .carve :is(.admonition, .callout, blockquote) {
     border-color: CanvasText;
+  }
+}
+
+:root[data-carve-contrast="high"] .carve {
+  --carve-quote-border: var(--carve-border);
+}
+@media (prefers-contrast: more) {
+  :root:not([data-carve-contrast="normal"]) .carve {
+    --carve-quote-border: var(--carve-border);
   }
 }

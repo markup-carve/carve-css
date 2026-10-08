@@ -204,8 +204,8 @@ test("an attribution sits under the quote it attributes", async ({ page }) => {
   const gap = await page.evaluate(() =>
     document.getElementById("quote-attribution").getBoundingClientRect().top
       - document.getElementById("quote-body").getBoundingClientRect().bottom);
-  expect(gap).toBeCloseTo(16, 1);
-  await expect(page.locator("#quote-body")).toHaveCSS("margin-bottom", "16px");
+  expect(gap).toBeCloseTo(8, 1);
+  await expect(page.locator("#quote-body")).toHaveCSS("margin-bottom", "0px");
 });
 
 /*

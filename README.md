@@ -331,3 +331,14 @@ another the OS never promised to differ from. That is how a badge computing
 WebKit, panel visibility and the selected control among it. Playwright
 emulates `forced-colors` and `prefers-contrast` in Chromium alone, leaving
 those two layers unmeasured elsewhere rather than green.
+
+## Quotes
+
+Quote bodies use document text contrast. Attributions align with the quote text;
+image captions keep their existing layout. Nested quotes keep a separate border.
+
+Override `--carve-quote-ink`, `--carve-quote-border`,
+`--carve-quote-border-width`, `--carve-quote-padding` or `--carve-quote-gap`
+to adjust the quote treatment. The gap controls paragraph spacing. Defaults are
+resolved on each quote, so color and spacing overrides on `.carve` also apply. The default border mixes document ink with the
+page surface. The contrast and print layers replace it with their border color.
