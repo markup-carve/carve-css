@@ -35,7 +35,7 @@
     "test:browsers": "playwright test"
   },
   "devDependencies": {
-    "@markup-carve/carve": "^0.1.4",
+    "@markup-carve/carve": "^0.1.10",
     "@playwright/test": "1.63.0"
   }
 }
