@@ -242,6 +242,14 @@ Both were found by reading real engine output rather than the syntax guide:
 - **A quote with an attribution is a `<figure>`,** not a `<blockquote>`: the
   quote is wrapped and the attribution is its `<figcaption>`. A rule targeting
   `blockquote cite` never fires.
+- **A task item's state is on the item, not on the box.** Only `[x]` renders a
+  checked box; `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` all render the same
+  unchecked one. The four extended states carry the authored character as
+  `data-task-state` on the `<li>`, so `li[data-task-state="-"]` is the only way
+  to tell a dropped task from an open one. This package draws each of the four
+  differently: dropped is struck through and dimmed, and paused, deferred and
+  maybe each outline the box. Carve 0.1.8 and carve-js 0.1.10 added the
+  attribute.
 
 A tab set and a code group each reach the page in **three** shapes, and all
 three are styled here. The split is not between engines: carve-js, carve-php and
@@ -279,9 +287,11 @@ npm test
 ```
 
 Renders the **spec corpus** plus the fixtures in `test/` through
-`@markup-carve/carve` in four configurations, extracts every class, ARIA role
-and element from the output, and fails when one has neither a rule nor a named
-exemption in `scripts/check-coverage.mjs`. The corpus is required: point
+`@markup-carve/carve` in four configurations, extracts every class, ARIA role,
+element and engine-chosen `data-` attribute from the output, and fails when one
+has neither a rule nor a named exemption in `scripts/check-coverage.mjs`.
+Attributes the document itself writes, in an attribute block or in a raw HTML
+tag, are the author's and are subtracted the same way author classes are. The corpus is required: point
 `CARVE_CORPUS` at an existing checkout's `tests/corpus` instead of cloning if
 you have one. The gate refuses to run without it rather than falling back to
 the fixtures, because a gate that quietly narrows its input reports success

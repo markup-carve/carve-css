@@ -287,3 +287,30 @@ test("a trailing image in a scroll container adds no height below itself", async
   });
   expect(stacked, "two stacked images stay separated").toBeCloseTo(16, 1);
 });
+
+/* The engine renders `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` as the same unchecked
+ * disabled box and tells them apart only by `data-task-state` on the item, so
+ * five states that look alike is the failure to watch for. The assertion is
+ * pairwise distinctness rather than a fixed outline per state: which outline a
+ * state takes is a design choice, that no two states collide is the contract. */
+test("the five unchecked task states are drawn apart", async ({ page }) => {
+  const states = ["", "-", "_", ">", "?"];
+  await page.setContent(`<article class="carve"><ul>${states
+    .map((state, index) =>
+      `<li id="task-${index}"${state ? ` data-task-state="${state === ">" ? "&gt;" : state}"` : ""}>` +
+      `<input id="box-${index}" type="checkbox" disabled aria-label="s"> text</li>`)
+    .join("")}</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+
+  const seen = new Map();
+  for (const [index, state] of states.entries()) {
+    const look = await page.evaluate((i) => {
+      const item = getComputedStyle(document.getElementById(`task-${i}`));
+      const box = getComputedStyle(document.getElementById(`box-${i}`));
+      return [item.color, item.textDecorationLine, box.outlineStyle, box.outlineColor, box.opacity].join("|");
+    }, index);
+    const spelling = state || "space";
+    expect(seen.has(look), `${spelling} looks exactly like ${seen.get(look)}`).toBe(false);
+    seen.set(look, spelling);
+  }
+});

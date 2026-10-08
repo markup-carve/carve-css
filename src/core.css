@@ -242,6 +242,32 @@
   accent-color: var(--carve-accent);
 }
 
+/* The four extended states. `[-]`, `[_]`, `[>]` and `[?]` all render the same
+ * unchecked box, so without a rule here they are indistinguishable from an open
+ * task and from each other; the engine names the authored character on the item
+ * so a stylesheet can tell them apart (spec PART 19, HTML serialization). The
+ * signal is on the box rather than on injected text, which keeps the item's
+ * accessible name as the engine wrote it. */
+.carve li[data-task-state] > input[type="checkbox"] {
+  outline-offset: 2px;
+}
+.carve li[data-task-state="-"] > input[type="checkbox"] {
+  opacity: 0.55;
+}
+.carve li[data-task-state="-"] {
+  color: var(--carve-ink-soft);
+  text-decoration: line-through;
+}
+.carve li[data-task-state="_"] > input[type="checkbox"] {
+  outline: var(--carve-border-width) dashed var(--carve-neutral);
+}
+.carve li[data-task-state=">"] > input[type="checkbox"] {
+  outline: var(--carve-border-width) solid var(--carve-accent);
+}
+.carve li[data-task-state="?"] > input[type="checkbox"] {
+  outline: var(--carve-border-width) dotted var(--carve-ink-soft);
+}
+
 .carve dt {
   font-weight: 600;
 }

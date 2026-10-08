@@ -109,6 +109,25 @@ const UNSTYLED_ELEMENTS = {
 };
 
 /*
+ * Data attributes the engine CHOOSES, and what each one is for.
+ *
+ * Classes, roles and elements were the whole surface this gate read, and an
+ * attribute is a fourth way the engine hands a construct's state to a
+ * stylesheet. `data-task-state` is the one that proved it: carve-js 0.1.10
+ * started naming the authored character on `[-]`, `[_]`, `[>]` and `[?]` items
+ * precisely so a stylesheet could tell four states apart that all render the
+ * same unchecked box - and every count this gate prints was identical before
+ * and after the bump, because nothing here looked at an attribute.
+ *
+ * Only an attribute the ENGINE chose is asked about. `{data-x=1}` in the source
+ * is the author's, exactly as `{.box}` is, and `authoredAttribute` subtracts it
+ * the same way.
+ */
+const UNSTYLED_ATTRIBUTES = {
+  "data-callout": "the callout badge's number; .callout carries the appearance",
+};
+
+/*
  * The corpus.
  *
  * Two fixtures in this repository cannot stand in for the language: they were
@@ -417,6 +436,25 @@ function authoredElement(source, name) {
   return new RegExp(`<${escapeForRegExp(name)}(?![\\w-])`, "i").test(source);
 }
 
+/*
+ * Whether this ATTRIBUTE was written by the document.
+ *
+ * `{data-x="{y}"}` on a span and `data-key="copy"` inside a raw HTML block both
+ * reach the page verbatim, and both are the author's to style. The attribute
+ * name in the source is the whole signature, in an attribute block or in a raw
+ * tag alike.
+ */
+function authoredAttribute(source, name) {
+  return new RegExp(`${escapeForRegExp(name)}\\s*=`, "i").test(source);
+}
+
+/* Whether the CSS selects on this attribute at all. The value is not matched:
+ * a rule may key on `[data-task-state]` bare or on one state, and either is a
+ * rule for the attribute. */
+function isAttributeStyled(css, name) {
+  return new RegExp(`\\[${escapeForRegExp(name)}(?![\\w-])`).test(css);
+}
+
 function exemptReason(name) {
   if (name in UNSTYLED) return { reason: UNSTYLED[name], key: name };
   for (const [prefix, reason] of Object.entries(UNSTYLED.__prefixes)) {
@@ -475,6 +513,20 @@ for (const [css, name, element, want] of [
     console.error(
       `FAIL: the per-element matcher is broken - isStyledOnElement(${JSON.stringify(css)}, ` +
         `${JSON.stringify(name)}, ${JSON.stringify(element)}) should be ${want}`,
+    );
+    process.exit(1);
+  }
+}
+for (const [css, name, want] of [
+  ['.carve li[data-task-state="-"] { opacity: 1 }', "data-task-state", true],
+  [".carve li[data-task-state] { color: red }", "data-task-state", true],
+  [".carve li[data-task-states] { color: red }", "data-task-state", false],
+  [".carve .data-task-state { color: red }", "data-task-state", false],
+]) {
+  if (isAttributeStyled(css, name) !== want) {
+    console.error(
+      `FAIL: the attribute matcher is broken - isAttributeStyled(${JSON.stringify(css)}, ` +
+        `${JSON.stringify(name)}) should be ${want}`,
     );
     process.exit(1);
   }
@@ -585,6 +637,17 @@ for (const configuration of CONFIGURATIONS) {
       }
       if (!missing.has(element)) missing.set(element, `element in ${where}`);
     }
+    for (const match of html.matchAll(/\s(data-[a-z][\w-]*)=/g)) {
+      const attribute = match[1].toLowerCase();
+      if (authoredAttribute(input.source, attribute)) continue;
+      seenNames.add(attribute);
+      if (isAttributeStyled(css, attribute)) continue;
+      if (attribute in UNSTYLED_ATTRIBUTES) {
+        firedExemptions.add(`[${attribute}]`);
+        continue;
+      }
+      if (!missing.has(attribute)) missing.set(attribute, `attribute in ${where}`);
+    }
   }
 }
 
@@ -645,7 +708,7 @@ if (missing.size > 0) {
   for (const [name, where] of missing) {
     console.error(`  ${name}  (${where})`);
   }
-  console.error("\nAdd a rule in src/, or name it in UNSTYLED / UNSTYLED_ELEMENTS in this script with the reason.");
+  console.error("\nAdd a rule in src/, or name it in UNSTYLED, UNSTYLED_ELEMENTS or UNSTYLED_ATTRIBUTES in this script with the reason.");
   process.exit(1);
 }
 
@@ -671,12 +734,13 @@ const declared = [
   ...Object.keys(UNSTYLED).filter((key) => key !== "__prefixes"),
   ...Object.keys(UNSTYLED.__prefixes),
   ...Object.keys(UNSTYLED_ELEMENTS).map((name) => `<${name}>`),
+  ...Object.keys(UNSTYLED_ATTRIBUTES).map((name) => `[${name}]`),
 ];
 const dead = declared.filter((key) => !firedExemptions.has(key));
 if (dead.length > 0) {
   console.error(`FAIL: ${dead.length} exemption(s) can no longer fire:\n`);
   for (const key of dead) {
-    const bare = key.replace(/^<|>$/g, "");
+    const bare = key.replace(/^[<[]|[>\]]$/g, "");
     const why = seenNames.has(bare)
       ? "the thing is styled now, so the exemption is unreachable"
       : "the engine emits nothing by this name across the corpus and all three configurations";
@@ -689,7 +753,8 @@ if (dead.length > 0) {
 console.log(
   `ok: ${inputs.length} input(s) x ${CONFIGURATIONS.length} configuration(s) = ${rendered} render(s) ` +
     `(${refused} corpus case(s) the engine refuses), ${names.length} derived extension(s); ` +
-    "every class, role and element is styled or exempt, every exemption still fires, and " +
+    "every class, role, element and engine-chosen data attribute is styled or exempt, " +
+    "every exemption still fires, and " +
     `each of ${[...carriers.values()].filter((elements) => elements.size > 1).length} ` +
     "multi-element class(es) is served on every element it arrives on",
 );
