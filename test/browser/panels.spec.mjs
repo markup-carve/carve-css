@@ -115,6 +115,17 @@ for (const [construct, source, panel, label] of [
     expect(Math.min(...(await heights(page, panel))), "every panel has height").toBeGreaterThan(0);
   });
 
+  /* The static panels are <section>s, and core's heading-section gap opened an
+   * empty strip between them (#37). Measured as geometry, not as a margin. */
+  test(`${construct} stacks its static panels without a gap`, async ({ page }) => {
+    await renderInto(page, source, "static");
+    const boxes = await page.$$eval(panel, (nodes) =>
+      nodes.map((node) => node.getBoundingClientRect()).map(({ top, bottom }) => ({ top, bottom })));
+    for (let i = 1; i < boxes.length; i++) {
+      expect(boxes[i].top - boxes[i - 1].bottom, `gap above panel ${i + 1}`).toBeLessThanOrEqual(0.5);
+    }
+  });
+
   /*
    * The selected control is DISTINGUISHABLE, which is a separate failure from
    * the panels: in aria mode `aria-selected` true and false computed

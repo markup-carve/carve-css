@@ -4,6 +4,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Fixes
+
+- Static tab, code-group and spoiler panels no longer take the heading-section gap above them, which opened an empty strip between panels (#37).
+
 ## [0.1.4] - 2026-10-08
 
 ### Fixes

@@ -133,6 +133,10 @@ for (const mode of ["interactive", "static"]) {
     expect(read.background, "a block spoiler keeps its fill").not.toBe(TRANSPARENT);
     expect(read.paddingTop, "a block spoiler keeps its block padding").not.toBe("0px");
     expect(read.paddingLeft, "a block spoiler keeps its inline padding").not.toBe("0px");
+    /* The static <section> took core's heading-section gap, which the
+     * interactive <details> never had (#37). */
+    const marginTop = await panel.evaluate((element) => getComputedStyle(element).marginTop);
+    expect(marginTop, "a block spoiler opens no section gap above it").toBe("0px");
   });
 }
 
