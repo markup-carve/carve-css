@@ -4,6 +4,14 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-10
+
+### Fixes
+
+- A checked task box is filled, so done and open tasks are told apart; browsers grey a disabled checkbox and ignored the accent color on it (#43).
+- A task in a bulleted list no longer shows a bullet in front of its checkbox; the box takes the bullet's place (#42, #44).
+- A callout badge prints its item's number instead of `0` (#40, #41).
+
 ## [0.1.5] - 2026-10-09
 
 ### Fixes
