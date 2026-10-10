@@ -331,3 +331,67 @@ test("the five unchecked task states are drawn apart", async ({ page }) => {
     seen.set(look, spelling);
   }
 });
+
+for (const dir of ["ltr", "rtl"]) {
+  test(`a task box replaces the bullet and its text lines up with plain siblings (${dir})`, async ({ page }) => {
+    await page.setContent(`<html dir="${dir}"><body><article class="carve">
+      <ul id="mixed">
+        <li id="plain">plain item</li>
+        <li id="task"><input id="box" type="checkbox" disabled aria-label="t"> task item
+          <ul><li id="child">child bullet</li></ul>
+        </li>
+        <li id="loose"><input id="loose-box" type="checkbox" disabled aria-label="t"> <p id="loose-p">loose task</p></li>
+      </ul>
+      <ol><li id="ordered"><input type="checkbox" disabled aria-label="t"> ordered task</li></ol>
+      <div class="tree"><ul><li><input id="tree-box" type="checkbox" disabled aria-label="t"> node</li></ul></div>
+      <div class="cards"><ul><li><input id="card-box" type="checkbox" disabled aria-label="t"> card
+        <ul><li id="card-plain">plain</li><li id="card-task"><input type="checkbox" disabled aria-label="t"> nested task</li></ul>
+      </li></ul></div>
+    </article></body></html>`);
+    for (const file of ["tokens.css", "core.css", "recipes.css"]) await page.addStyleTag({ path: `${src}${file}` });
+
+    const layout = await page.evaluate((dir) => {
+      const start = (el) => {
+        const range = document.createRange();
+        const text = [...el.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+        range.setStart(text, text.textContent.search(/\S/));
+        range.setEnd(text, text.textContent.trimEnd().length);
+        const r = range.getBoundingClientRect();
+        return dir === "rtl" ? r.right : r.left;
+      };
+      const rect = (id) => document.getElementById(id).getBoundingClientRect();
+      const list = rect("mixed");
+      const box = rect("box");
+      const edge = (r) => (dir === "rtl" ? r.right : r.left);
+      const style = (id) => getComputedStyle(document.getElementById(id)).listStyleType;
+      return {
+        plainText: start(document.getElementById("plain")),
+        taskText: start(document.getElementById("task")),
+        looseText: start(document.getElementById("loose-p")),
+        boxInMarkerColumn: dir === "rtl" ? box.left >= rect("plain").right && box.right <= list.right : box.right <= rect("plain").left && box.left >= list.left,
+        looseBesideText: Math.abs(rect("loose-box").top - rect("loose-p").top) < rect("loose-p").height,
+        treeBoxInline: Math.abs(edge(rect("tree-box")) - edge(document.querySelector(".tree li").getBoundingClientRect())) < 1,
+        cardBoxInline: dir === "rtl"
+          ? rect("card-box").right <= document.querySelector(".cards li").getBoundingClientRect().right
+          : rect("card-box").left >= document.querySelector(".cards li").getBoundingClientRect().left,
+        cardNestedAligned: Math.abs(start(document.getElementById("card-task")) - start(document.getElementById("card-plain"))) < 1,
+        plain: style("plain"),
+        task: style("task"),
+        child: style("child"),
+        ordered: style("ordered"),
+      };
+    }, dir);
+
+    expect(layout.task, "a task item draws no bullet").toBe("none");
+    expect(layout.plain).toBe("disc");
+    expect(layout.child, "a list nested in a task keeps its bullets").toBe("circle");
+    expect(layout.ordered, "an ordered task keeps its number").toBe("decimal");
+    expect(layout.boxInMarkerColumn, "the box sits in the bullet's column").toBe(true);
+    expect(Math.abs(layout.taskText - layout.plainText)).toBeLessThan(1);
+    expect(Math.abs(layout.looseText - layout.plainText)).toBeLessThan(1);
+    expect(layout.looseBesideText, "a loose item's paragraph sits beside its box").toBe(true);
+    expect(layout.treeBoxInline, "a tree node keeps its box inline").toBe(true);
+    expect(layout.cardBoxInline, "a card keeps its box inside the panel").toBe(true);
+    expect(layout.cardNestedAligned, "a task list nested in a card still hangs its box").toBe(true);
+  });
+}

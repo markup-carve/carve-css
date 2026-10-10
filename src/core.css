@@ -273,6 +273,25 @@
     box-shadow: none;
   }
 }
+/* The box replaces the bullet: it floats into the marker column, so the text
+ * starts where a plain sibling's does, and a loose item's first paragraph sits
+ * beside the box instead of under it. A nested list keeps its own bullets, and
+ * an ordered list keeps its numbers, which carry meaning a bullet does not.
+ * Gated as a pair: without `:has()` or a logical float (Chromium 105 to 117 has
+ * one and not the other) the bullet-then-box line stays as it was. */
+@supports selector(:has(> a)) and (float: inline-start) {
+  .carve ul > li:has(> input[type="checkbox"]:first-child) {
+    list-style: none;
+  }
+  .carve ul > li > input[type="checkbox"]:first-child {
+    float: inline-start;
+    /* The base rule's 1em box is in the UA's control font (13.3px in Chromium
+     * and Firefox, 16px in WebKit); the hang below needs the text's em. */
+    font-size: inherit;
+    margin-block: calc((var(--carve-line-height) - 1) * 0.5em) 0;
+    margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
+  }
+}
 
 /* The four extended states. `[-]`, `[_]`, `[>]` and `[?]` all render the same
  * unchecked box, so without a rule here they are indistinguishable from an open
