@@ -251,6 +251,12 @@ Both were found by reading real engine output rather than the syntax guide:
   maybe each outline the box. Carve 0.1.8 and carve-js 0.1.10 added the
   attribute. In a bulleted list the box takes the bullet's place; an ordered
   list keeps its numbers.
+- **A task list and a done item name themselves** once the engine follows
+  markup-carve/carve#2887: the list carries `class="task-list"` and a done
+  item `data-task-state="x"`. This package hangs the box from `ul.task-list`
+  and dims a done item's text from `li[data-task-state="x"]`, neither of which
+  needs `:has()`. Output from an earlier engine has neither hook; its bullet is
+  still replaced through a gated `:has()`, and its done text stays full ink.
 
 A tab set and a code group each reach the page in **three** shapes, and all
 three are styled here. The split is not between engines: carve-js, carve-php and
@@ -274,8 +280,9 @@ them - so `.tabs-radio:checked + .tabs-label + .tabs-panel` matches nothing. The
 rule replacing it pairs radio N with panel N across the sibling combinator,
 which needs no `:has()`, so the tab shapes have no browser floor beyond what
 `nth-of-type` and custom properties ask for. The one `:has()` in these
-stylesheets drops the bullet in front of a task checkbox, and it sits behind a
-supports check: a browser without it keeps the bullet and the box. The ladder is finite at 12 because CSS cannot count; past that a tab set
+stylesheets drops the bullet in front of a task checkbox in output that has no
+`task-list` class, and it sits behind a supports check: a browser without it
+keeps the bullet and the box. The ladder is finite at 12 because CSS cannot count; past that a tab set
 reveals every panel, which is where static mode lands and is readable.
 
 Earlier releases also styled `.tabs > .tab`, which no engine emits. All three
