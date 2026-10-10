@@ -305,6 +305,18 @@ test("a checked task looks different from an open one", async ({ page }) => {
   expect(look, "print falls back to the native box, whose check survives without backgrounds").toBe("auto");
 });
 
+/* A done item carries `data-task-state="x"` (spec PART 19), so its text can
+ * recede without `:has()`; an open item keeps full ink. */
+test("a done task's text recedes", async ({ page }) => {
+  await page.setContent(`<article class="carve"><ul class="task-list">` +
+    `<li id="open"><input type="checkbox" disabled aria-label="s"> text</li>` +
+    `<li id="done" data-task-state="x"><input type="checkbox" checked disabled aria-label="s"> text</li>` +
+    `</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  const ink = (id) => page.evaluate((i) => getComputedStyle(document.getElementById(i)).color, id);
+  expect(await ink("done")).not.toBe(await ink("open"));
+});
+
 /* The engine renders `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` as the same unchecked
  * disabled box and tells them apart only by `data-task-state` on the item, so
  * five states that look alike is the failure to watch for. The assertion is
@@ -332,20 +344,30 @@ test("the five unchecked task states are drawn apart", async ({ page }) => {
   }
 });
 
-for (const dir of ["ltr", "rtl"]) {
-  test(`a task box replaces the bullet and its text lines up with plain siblings (${dir})`, async ({ page }) => {
+/* Two shapes: a task list naming itself with `task-list` (spec PART 19), where a
+ * plain item starts a new list, and the class-less mixed list of an engine that
+ * predates the class, reached through the gated `:has()`. */
+const TASK_SHAPES = {
+  "task-list class": (plain, tasks) => `<ul>${plain}</ul><ul id="mixed" class="task-list">${tasks}</ul>`,
+  "class-less": (plain, tasks) => `<ul id="mixed">${plain}${tasks}</ul>`,
+};
+for (const [shape, lists] of Object.entries(TASK_SHAPES)) for (const dir of ["ltr", "rtl"]) {
+  test(`a task box replaces the bullet and its text lines up with plain siblings (${shape}, ${dir})`, async ({ page }) => {
+    const cardPlain = `<li id="card-plain">plain</li>`;
+    const cardTask = `<li id="card-task"><input type="checkbox" disabled aria-label="t"> nested task</li>`;
+    const cardLists = shape === "class-less"
+      ? `<ul>${cardPlain}${cardTask}</ul>`
+      : `<ul>${cardPlain}</ul><ul class="task-list">${cardTask}</ul>`;
     await page.setContent(`<html dir="${dir}"><body><article class="carve">
-      <ul id="mixed">
-        <li id="plain">plain item</li>
+      ${lists(`<li id="plain">plain item</li>`, `
         <li id="task"><input id="box" type="checkbox" disabled aria-label="t"> task item
           <ul><li id="child">child bullet</li></ul>
         </li>
-        <li id="loose"><input id="loose-box" type="checkbox" disabled aria-label="t"> <p id="loose-p">loose task</p></li>
-      </ul>
+        <li id="loose"><input id="loose-box" type="checkbox" disabled aria-label="t"> <p id="loose-p">loose task</p></li>`)}
       <ol><li id="ordered"><input type="checkbox" disabled aria-label="t"> ordered task</li></ol>
       <div class="tree"><ul><li><input id="tree-box" type="checkbox" disabled aria-label="t"> node</li></ul></div>
       <div class="cards"><ul><li><input id="card-box" type="checkbox" disabled aria-label="t"> card
-        <ul><li id="card-plain">plain</li><li id="card-task"><input type="checkbox" disabled aria-label="t"> nested task</li></ul>
+        ${cardLists}
       </li></ul></div>
     </article></body></html>`);
     for (const file of ["tokens.css", "core.css", "recipes.css"]) await page.addStyleTag({ path: `${src}${file}` });
