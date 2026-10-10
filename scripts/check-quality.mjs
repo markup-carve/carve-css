@@ -147,8 +147,10 @@ if (dualShapeFailures.length) {
  *   as a separate object. Its own ink/fill pair has to be measured.
  */
 const INLINE_FILLS = new Set(["code", "ins", "del", "mark", ".critic-comment"]);
+// A task checkbox is always its item's first child, so no highlight can enclose it.
 const BLOCK_HOSTS = new Set([".carve", ".carve pre", ".carve pre code", ".carve .admonition",
-  '.carve th[scope="col"]', '.carve th[scope="row"]']);
+  '.carve th[scope="col"]', '.carve th[scope="row"]',
+  '.carve li > input[type="checkbox"]', '.carve li > input[type="checkbox"]:checked']);
 const NESTED_INK = ["carve-accent-ink", "carve-accent-soft"];
 
 function fillRules(source) {
