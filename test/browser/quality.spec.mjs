@@ -288,6 +288,23 @@ test("a trailing image in a scroll container adds no height below itself", async
   expect(stacked, "two stacked images stay separated").toBeCloseTo(16, 1);
 });
 
+/* Browsers grey every disabled checkbox and ignore accent-color on it, so the
+ * box has to carry the checked state itself. */
+test("a checked task looks different from an open one", async ({ page }) => {
+  await page.setContent(`<article class="carve"><ul>` +
+    `<li id="open"><input id="open-box" type="checkbox" disabled aria-label="s"> text</li>` +
+    `<li id="done"><input id="done-box" type="checkbox" checked disabled aria-label="s"> text</li>` +
+    `</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+
+  const fill = (id) => page.evaluate((i) => getComputedStyle(document.getElementById(`${i}-box`)).backgroundColor, id);
+  expect(await fill("done"), "the checked box is filled").not.toBe(await fill("open"));
+
+  await page.emulateMedia({ media: "print" });
+  const look = await page.evaluate(() => getComputedStyle(document.getElementById("done-box")).appearance);
+  expect(look, "print falls back to the native box, whose check survives without backgrounds").toBe("auto");
+});
+
 /* The engine renders `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` as the same unchecked
  * disabled box and tells them apart only by `data-task-state` on the item, so
  * five states that look alike is the failure to watch for. The assertion is

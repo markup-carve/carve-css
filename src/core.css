@@ -248,10 +248,30 @@
  * aria-label, inline in the item text. */
 .carve li > input[type="checkbox"] {
   margin-inline-end: var(--carve-space-2);
-  /* A disabled control is greyed by the UA, which reads as "broken" rather than
-   * "a rendered state". The list is a document, not a form. */
+  /* Drawn by hand: browsers grey a disabled box and ignore accent-color on it,
+   * so a checked and an open task looked alike. The list is a document, not a form. */
+  appearance: none;
+  inline-size: 1em;
+  block-size: 1em;
+  vertical-align: -0.125em;
+  border: max(var(--carve-border-width), 1.5px) solid var(--carve-ink-soft);
+  border-radius: 0.2em;
+  background: var(--carve-surface);
   opacity: 1;
-  accent-color: var(--carve-accent);
+}
+.carve li > input[type="checkbox"]:checked {
+  border-color: var(--carve-accent);
+  background: var(--carve-accent);
+  box-shadow: inset 0 0 0 0.15em var(--carve-surface);
+}
+/* The fill is a background, which print may drop and forced colors repaint;
+ * the native box draws a real checkmark there. */
+@media print, (forced-colors: active) {
+  .carve li > input[type="checkbox"],
+  .carve li > input[type="checkbox"]:checked {
+    appearance: auto;
+    box-shadow: none;
+  }
 }
 
 /* The four extended states. `[-]`, `[_]`, `[>]` and `[?]` all render the same
