@@ -249,7 +249,8 @@ Both were found by reading real engine output rather than the syntax guide:
   to tell a dropped task from an open one. This package draws each of the four
   differently: dropped is struck through and dimmed, and paused, deferred and
   maybe each outline the box. Carve 0.1.8 and carve-js 0.1.10 added the
-  attribute.
+  attribute. In a bulleted list the box takes the bullet's place; an ordered
+  list keeps its numbers.
 
 A tab set and a code group each reach the page in **three** shapes, and all
 three are styled here. The split is not between engines: carve-js, carve-php and
@@ -271,9 +272,10 @@ One consequence for a consumer. In the radio shape a panel is not the sibling of
 its own label - the controls only look interleaved because `order: -1` moves
 them - so `.tabs-radio:checked + .tabs-label + .tabs-panel` matches nothing. The
 rule replacing it pairs radio N with panel N across the sibling combinator,
-which needs no `:has()`: these stylesheets use that selector nowhere, so no rule
-here has a browser floor beyond what `nth-of-type` and custom properties ask
-for. The ladder is finite at 12 because CSS cannot count; past that a tab set
+which needs no `:has()`, so the tab shapes have no browser floor beyond what
+`nth-of-type` and custom properties ask for. The one `:has()` in these
+stylesheets drops the bullet in front of a task checkbox, and it sits behind a
+supports check: a browser without it keeps the bullet and the box. The ladder is finite at 12 because CSS cannot count; past that a tab set
 reveals every panel, which is where static mode lands and is readable.
 
 Earlier releases also styled `.tabs > .tab`, which no engine emits. All three

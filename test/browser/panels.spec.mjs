@@ -351,17 +351,31 @@ test("the tab modes are css and aria, and static is the document's", async () =>
   expect(html, "and emits the static shape").toContain('<section class="tabs-panel">');
 });
 
-/* No rule in this package uses `:has()` any more, which is what lets the README
- * say the radio shape has no floor beyond nth-of-type. Asserted on the files
- * because it is a claim about the shipped text, not about one browser. */
-test("no stylesheet depends on :has()", () => {
+/* A `:has()` in a selector gives its rule a browser floor, and one taking a
+ * descendant answered for a nested tab set (#18). So the only use allowed is a
+ * child-combinator `:has(>` inside an `@supports selector(:has(` block, where an
+ * older browser keeps the plain rendering. Asserted on the files because it is a
+ * claim about the shipped text, not about one browser. */
+test("every :has() is a child test behind its own supports gate", () => {
   const offenders = [];
   for (const file of fs.readdirSync(src).filter((name) => name.endsWith(".css"))) {
-    const text = fs.readFileSync(`${src}${file}`, "utf8");
-    const code = text.replace(/\/\*[\s\S]*?\*\//g, "");
-    if (code.includes(":has(")) offenders.push(file);
+    const code = fs.readFileSync(`${src}${file}`, "utf8").replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "));
+    const gated = [];
+    for (const match of code.matchAll(/@supports\s+selector\(:has\([^{]*\{/g)) {
+      let depth = 1;
+      let end = match.index + match[0].length;
+      while (depth && end < code.length) depth += { "{": 1, "}": -1 }[code[end++]] ?? 0;
+      gated.push([match.index + match[0].length, end]);
+    }
+    for (const match of code.matchAll(/:has\(/g)) {
+      const at = match.index;
+      if (code.slice(at - 9, at) === "selector(") continue;
+      const inGate = gated.some(([from, to]) => at >= from && at < to);
+      const child = /^:has\(\s*>/.test(code.slice(at));
+      if (!inGate || !child) offenders.push(`${file}:${code.slice(0, at).split("\n").length}`);
+    }
   }
-  expect(offenders, "a :has() in a selector gives the whole rule a browser floor").toEqual([]);
+  expect(offenders, "an ungated or descendant :has()").toEqual([]);
 });
 
 /*
