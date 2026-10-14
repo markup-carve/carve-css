@@ -4,6 +4,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Improvements
+
+- An ordered list written with `1)` shows its `)` delimiter, read from the engine's `data-delim`; a recipe that hides list markers keeps them hidden.
+
 ## [0.1.6] - 2026-10-10
 
 ### Fixes

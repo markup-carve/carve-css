@@ -180,6 +180,21 @@
   margin-block: 0 var(--carve-space-4);
 }
 
+/* The engine keeps an authored `1)` delimiter as data-delim; show it instead of the UA's `1.`.
+ * Zero specificity, so a recipe that hides markers (`list-style: none`) still wins. `type`
+ * matches case-insensitively in HTML, so a/A and i/I need the `s` flag; where that is
+ * unsupported a typed list keeps the UA marker (right letter, `.` delimiter). */
+@counter-style carve-paren-decimal { system: extends decimal; suffix: ") "; }
+@counter-style carve-paren-lower-alpha { system: extends lower-alpha; suffix: ") "; }
+@counter-style carve-paren-upper-alpha { system: extends upper-alpha; suffix: ") "; }
+@counter-style carve-paren-lower-roman { system: extends lower-roman; suffix: ") "; }
+@counter-style carve-paren-upper-roman { system: extends upper-roman; suffix: ") "; }
+:where(.carve ol[data-delim=")"]:is(:not([type]), [type="1"])) { list-style-type: carve-paren-decimal; }
+:where(.carve ol[data-delim=")"][type="a" s]) { list-style-type: carve-paren-lower-alpha; }
+:where(.carve ol[data-delim=")"][type="A" s]) { list-style-type: carve-paren-upper-alpha; }
+:where(.carve ol[data-delim=")"][type="i" s]) { list-style-type: carve-paren-lower-roman; }
+:where(.carve ol[data-delim=")"][type="I" s]) { list-style-type: carve-paren-upper-roman; }
+
 .carve blockquote {
   border-inline-start: var(--carve-quote-border-width, var(--carve-accent-width)) solid var(--carve-quote-border, color-mix(in srgb, var(--carve-ink) 50%, var(--carve-surface)));
   padding-inline-start: var(--carve-quote-padding, var(--carve-space-4));
