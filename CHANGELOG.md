@@ -4,10 +4,12 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-14
+
 ### Improvements
 
-- A task list's `task-list` class hangs each checkbox in the marker column without `:has()`, and a done item's `data-task-state="x"` dims its text.
-- An ordered list written with `1)` shows its `)` delimiter, read from the engine's `data-delim`; a recipe that hides list markers keeps them hidden.
+- A task list's `task-list` class hangs each checkbox in the marker column without `:has()`, and a done item's `data-task-state="x"` dims its text (#49).
+- An ordered list written with `1)` shows its `)` delimiter, read from the engine's `data-delim`; a recipe that hides list markers keeps them hidden (#49).
 
 ## [0.1.6] - 2026-10-10
 

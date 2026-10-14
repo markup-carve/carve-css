@@ -1,6 +1,6 @@
 {
   "name": "@markup-carve/carve-css",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Stylesheet for the HTML the Carve markup language renders - admonitions, tab sets, code groups, callouts, figures, footnotes, glossary and index",
   "keywords": ["carve", "markup", "css", "stylesheet", "theme"],
   "license": "MIT",
@@ -35,7 +35,7 @@
     "test:browsers": "playwright test"
   },
   "devDependencies": {
-    "@markup-carve/carve": "^0.1.10",
+    "@markup-carve/carve": "^0.1.11",
     "@playwright/test": "1.63.0"
   }
 }
