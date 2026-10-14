@@ -10,6 +10,12 @@ on:
     # here changing, so push and pull_request alone cannot catch it.
     - cron: '23 5 * * *'
 
+# Pull requests share one group per PR so a new push cancels the stale run;
+# every other event gets its own group, since GitHub keeps one pending run per group.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
