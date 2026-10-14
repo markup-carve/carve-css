@@ -9,7 +9,7 @@ test("an authored 1) marker survives the engine and CSS", async ({ page }) => {
   expect(html).toContain('data-delim=")"');
   await page.setContent(`<article class="carve">${html}</article>`);
   for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
-  const type = await page.locator("ol > li").first().evaluate((li) => getComputedStyle(li).listStyleType);
+  const type = await page.locator("ol").evaluate((list) => getComputedStyle(list).listStyleType);
   expect(type).toBe("carve-paren-decimal");
 });
 
