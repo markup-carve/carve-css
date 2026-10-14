@@ -96,7 +96,6 @@ const UNSTYLED_ELEMENTS = {
   label: "the tab control in css mode; .tabs-label and .code-group-label carry the appearance",
   script: "a diagram renderer's JSON payload; the UA never renders it",
   nav: "the toc's wrapper; .toc carries the rules",
-  s: "strikethrough; the UA line is the whole appearance",
   samp: "sample output; the UA monospace face is what it needs",
   /* No `span` entry: `:where(span).spoiler` names the element, so the element
    * matcher answers for a bare span too and the exemption could not fire. That
