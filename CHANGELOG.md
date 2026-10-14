@@ -4,6 +4,8 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-14
+
 ### Improvements
 
 - A task list's `task-list` class hangs each checkbox in the marker column without `:has()`, and a done item's `data-task-state="x"` dims its text.

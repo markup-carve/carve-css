@@ -1,7 +1,17 @@
 import { test, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
+import * as carve from "@markup-carve/carve";
 
 const src = fileURLToPath(new URL("../../src/", import.meta.url));
+
+test("an authored 1) marker survives the engine and CSS", async ({ page }) => {
+  const html = carve.carveToHtml("1) one\n2) two\n");
+  expect(html).toContain('data-delim=")"');
+  await page.setContent(`<article class="carve">${html}</article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  const type = await page.locator("ol > li").first().evaluate((li) => getComputedStyle(li).listStyleType);
+  expect(type).toBe("carve-paren-decimal");
+});
 
 async function pageWithStyles(page, extras = []) {
   await page.setContent(`
