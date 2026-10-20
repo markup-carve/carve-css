@@ -72,6 +72,17 @@ A caption with an inline ![status icon](status.png) must not become a tile.
 | value   | value    |
 :::
 
+{.scroll}
+``` js
+const a = 1;
+```
+
+{.scroll}
+``` js
+const b = 2;
+```
+^ A captioned listing
+
 ::: wide
 |= Wide |= Table |
 | 1     | 2      |

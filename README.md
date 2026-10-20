@@ -126,6 +126,8 @@ selector:
 | `--carve-gallery-min-size` | `12rem` | minimum responsive gallery tile width |
 | `--carve-table-min-width` | `100%` | optional minimum width for scroll-wrapped tables |
 | `--carve-step-marker` | `1.5rem` | the numbered circle on a step; the text gutter follows it |
+| `--carve-scroll-lines` | `25` | visible lines of a `{.scroll}` code block |
+| `--carve-scroll-max-height` | unset | a length that replaces the line count |
 | `--carve-wide-size` | `100%` | how far `::: wide` may spread |
 | `--carve-aside-size` | `14rem` | a floated margin note |
 
@@ -133,6 +135,18 @@ The `.scroll` recipe is the responsive table pattern: it preserves a semantic
 table and contains horizontal overflow on narrow screens. Galleries use
 auto-fitting columns and collapse safely even when their configured minimum is
 wider than the viewport.
+
+`{.scroll}` on the line above a fence, a captioned fence or an include bounds a
+long code block at 25 lines and scrolls it vertically; it is not clipped when
+printed. Override the height per block with a line count:
+
+```
+{.scroll style="--carve-scroll-lines: 20"}
+{{ src/example.js @code:js }}
+```
+
+The class lands on the `<pre>`, or on the `<figure>` for a captioned fence. For
+keyboard scrolling the renderer must make the `<pre>` focusable (`tabindex="0"`).
 
 Several take a `data-*` attribute from the source instead of a second class -
 `{.tree data-guides="dotted"}`, `{data-columns="3"}`, `[beta]{.badge

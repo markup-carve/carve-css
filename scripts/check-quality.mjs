@@ -22,6 +22,7 @@ const contracts = [
   ["contrast.css", "forced colors", /@media \(forced-colors:\s*active\)/],
   ["core.css", "visible focus", /\.carve :focus-visible\s*\{[^{}]*outline:/],
   ["recipes.css", "responsive tables", /\.scroll > table\s*\{[^{}]*min-width:\s*var\(--carve-table-min-width\)/],
+  ["recipes.css", "scroll code blocks", /pre\.scroll[^{]*\{[^{}]*max-block-size:[^;]*--carve-scroll-lines[^{}]*overflow:\s*auto/],
   ["core.css", "footnote sizing", /\[role="doc-endnotes"\]\s*\{[^{}]*font-size:\s*var\(--carve-footnote-size\)/],
   ["print.css", "print links", /a\[href\^="http"\]::after\s*\{[^{}]*display:\s*var\(--carve-print-link-destinations\)/],
   ["print.css", "print index", /\.index-list\s*\{[^{}]*columns:\s*var\(--carve-print-index-columns\)/],
