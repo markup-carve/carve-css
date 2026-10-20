@@ -145,8 +145,10 @@ printed. Override the height per block with a line count:
 {{ src/example.js @code:js }}
 ```
 
-The class lands on the `<pre>`, or on the `<figure>` for a captioned fence. For
-keyboard scrolling the renderer must make the `<pre>` focusable (`tabindex="0"`).
+The class lands on the `<pre>`, or on the `<figure>` for a captioned fence. Browsers
+that make scroll containers keyboard-focusable need nothing more. For the others,
+the host adds `tabindex="0"` to `pre.scroll` in its template, or with one line of
+JavaScript: `document.querySelectorAll('pre.scroll').forEach(el => el.tabIndex = 0)`.
 
 Several take a `data-*` attribute from the source instead of a second class -
 `{.tree data-guides="dotted"}`, `{data-columns="3"}`, `[beta]{.badge
