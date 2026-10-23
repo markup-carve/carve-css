@@ -4,6 +4,12 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-23
+
+### Improvements
+
+- `{.scroll}` on a fence, a captioned fence or a code include bounds a long code block at 25 lines and scrolls it; `--carve-scroll-lines` or `--carve-scroll-max-height` sets the height per block, and printing shows the whole block (#51).
+
 ## [0.1.7] - 2026-10-14
 
 ### Improvements
