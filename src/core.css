@@ -332,6 +332,10 @@
 .carve li[data-task-state="x"] {
   color: var(--carve-ink-soft);
 }
+.carve li[data-task-state="x"] > ul,
+.carve li[data-task-state="x"] > ol {
+  color: var(--carve-ink);
+}
 
 /* `_` spells the same open state as a space. The remaining extended states
  * need distinct marks on the box; the engine keeps their authored characters
