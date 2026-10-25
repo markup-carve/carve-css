@@ -339,6 +339,25 @@ test("a done task's text recedes", async ({ page }) => {
   expect(await ink("done")).not.toBe(await ink("open"));
 });
 
+test("a dropped task leaves its nested items readable", async ({ page }) => {
+  await page.setContent(`<article class="carve"><ul>` +
+    `<li data-task-state="-"><input type="checkbox" disabled aria-label="s"> Dropped` +
+    `<ul><li id="nested"><input type="checkbox" disabled aria-label="s"> Still open</li></ul></li>` +
+    `</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  const look = await page.evaluate(() => {
+    const nested = document.getElementById("nested");
+    const dropped = nested.closest('[data-task-state="-"]');
+    return {
+      decoration: getComputedStyle(dropped).textDecorationLine,
+      childColor: getComputedStyle(nested).color,
+      documentColor: getComputedStyle(document.querySelector("article")).color,
+    };
+  });
+  expect(look.decoration).toBe("none");
+  expect(look.childColor).toBe(look.documentColor);
+});
+
 /* `_` is an open alias. Every other unchecked state needs its own appearance. */
 test("open aliases match while named unchecked states differ", async ({ page }) => {
   const states = ["", "_", "-", "/", "!", ">", "?"];

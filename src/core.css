@@ -328,8 +328,7 @@
     margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
   }
 }
-/* A done item names itself too, so its text recedes like a dropped task's,
- * without the strike that marks a dropped one. */
+/* Completed task text recedes while its checked box keeps the state visible. */
 .carve li[data-task-state="x"] {
   color: var(--carve-ink-soft);
 }
@@ -341,11 +340,11 @@
   outline-offset: 2px;
 }
 .carve li[data-task-state="-"] > input[type="checkbox"] {
-  opacity: 0.55;
-}
-.carve li[data-task-state="-"] {
-  color: var(--carve-ink-soft);
-  text-decoration: line-through;
+  border-color: var(--carve-ink-soft);
+  background-image: linear-gradient(var(--carve-ink-soft), var(--carve-ink-soft));
+  background-position: center;
+  background-size: 60% 2px;
+  background-repeat: no-repeat;
 }
 .carve li[data-task-state="/"] > input[type="checkbox"] {
   border-color: var(--carve-accent);
