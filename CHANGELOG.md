@@ -4,6 +4,13 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-25
+
+### Improvements
+
+- Checked task boxes use the success color and a checkmark. Themes can override the box fill and icon with `--carve-task-check-fill` and `--carve-task-check-icon` (#55).
+- Task lists show an accent stripe for progress `[/]` and an exclamation mark for blocked `[!]`. Dropped `[-]` tasks show a dash without dimming their text, and `[_]` looks like an open task (#56).
+
 ## [0.1.8] - 2026-10-23
 
 ### Improvements
