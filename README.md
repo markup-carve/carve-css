@@ -264,15 +264,17 @@ Both were found by reading real engine output rather than the syntax guide:
 - **A quote with an attribution is a `<figure>`,** not a `<blockquote>`: the
   quote is wrapped and the attribution is its `<figcaption>`. A rule targeting
   `blockquote cite` never fires.
-- **A task item's state is on the item, not on the box.** Only `[x]` renders a
-  checked box; `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` all render the same
-  unchecked one. The four extended states carry the authored character as
-  `data-task-state` on the `<li>`, so `li[data-task-state="-"]` is the only way
-  to tell a dropped task from an open one. This package draws each of the four
-  differently: dropped is struck through and dimmed, and paused, deferred and
-  maybe each outline the box. Carve 0.1.8 and carve-js 0.1.10 added the
-  attribute. In a bulleted list the box takes the bullet's place; an ordered
-  list keeps its numbers.
+- **A task item's state is on the item, not on the box.** `[x]` is
+  checked. `[ ]` and its open alias `[_]`, progress `[/]`, blocked `[!]`,
+  dropped `[-]`, deferred `[>]` and uncertain `[?]` are unchecked. The authored
+  nondefault character appears as `data-task-state` on the `<li>`: `_`, `/`,
+  `!`, `-`, `>` or `?`. A done item uses `data-task-state="x"`; a default
+  open item has no state attribute. The stylesheet gives progress a blue slash
+  and blocked a red exclamation mark. Dropped text is struck through and
+  dimmed; deferred and uncertain states outline the box. The `[_]` alias
+  looks like `[ ]`. In a bulleted list the box takes the bullet's place;
+  an ordered list keeps its numbers. Override `--carve-task-check-fill` to
+  change the done box fill and `--carve-task-check-icon` to change its icon.
 - **A task list and a done item name themselves** once the engine follows
   markup-carve/carve#2887: the list carries `class="task-list"` and a done
   item `data-task-state="x"`. This package hangs the box from `ul.task-list`
