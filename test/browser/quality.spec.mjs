@@ -339,13 +339,41 @@ test("a done task's text recedes", async ({ page }) => {
   expect(await ink("done")).not.toBe(await ink("open"));
 });
 
-/* The engine renders `[ ]`, `[-]`, `[_]`, `[>]` and `[?]` as the same unchecked
- * disabled box and tells them apart only by `data-task-state` on the item, so
- * five states that look alike is the failure to watch for. The assertion is
- * pairwise distinctness rather than a fixed outline per state: which outline a
- * state takes is a design choice, that no two states collide is the contract. */
-test("the five unchecked task states are drawn apart", async ({ page }) => {
-  const states = ["", "-", "_", ">", "?"];
+test("a dropped task leaves its nested items readable", async ({ page }) => {
+  await page.setContent(`<article class="carve"><ul>` +
+    `<li data-task-state="-"><input type="checkbox" disabled aria-label="s"> Dropped` +
+    `<ul><li id="nested"><input type="checkbox" disabled aria-label="s"> Still open</li></ul></li>` +
+    `</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  const look = await page.evaluate(() => {
+    const nested = document.getElementById("nested");
+    const dropped = nested.closest('[data-task-state="-"]');
+    return {
+      decoration: getComputedStyle(dropped).textDecorationLine,
+      childColor: getComputedStyle(nested).color,
+      documentColor: getComputedStyle(document.querySelector("article")).color,
+    };
+  });
+  expect(look.decoration).toBe("none");
+  expect(look.childColor).toBe(look.documentColor);
+});
+
+test("a completed task leaves its nested items at normal contrast", async ({ page }) => {
+  await page.setContent(`<article class="carve"><ul>` +
+    `<li data-task-state="x"><input type="checkbox" checked disabled aria-label="s"> Done` +
+    `<ul><li id="nested"><input type="checkbox" disabled aria-label="s"> Still open</li></ul></li>` +
+    `</ul></article>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  const look = await page.evaluate(() => ({
+    childColor: getComputedStyle(document.getElementById("nested")).color,
+    documentColor: getComputedStyle(document.querySelector("article")).color,
+  }));
+  expect(look.childColor).toBe(look.documentColor);
+});
+
+/* `_` is an open alias. Every other unchecked state needs its own appearance. */
+test("open aliases match while named unchecked states differ", async ({ page }) => {
+  const states = ["", "_", "-", "/", "!", ">", "?"];
   await page.setContent(`<article class="carve"><ul>${states
     .map((state, index) =>
       `<li id="task-${index}"${state ? ` data-task-state="${state === ">" ? "&gt;" : state}"` : ""}>` +
@@ -354,13 +382,20 @@ test("the five unchecked task states are drawn apart", async ({ page }) => {
   for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
 
   const seen = new Map();
+  let openLook;
   for (const [index, state] of states.entries()) {
     const look = await page.evaluate((i) => {
       const item = getComputedStyle(document.getElementById(`task-${i}`));
       const box = getComputedStyle(document.getElementById(`box-${i}`));
-      return [item.color, item.textDecorationLine, box.outlineStyle, box.outlineColor, box.opacity].join("|");
+      return [item.color, item.textDecorationLine, box.outlineStyle, box.outlineColor,
+        box.borderColor, box.backgroundColor, box.backgroundImage, box.opacity].join("|");
     }, index);
     const spelling = state || "space";
+    if (state === "_") {
+      expect(look, "underscore looks like an open task").toBe(openLook);
+      continue;
+    }
+    if (state === "") openLook = look;
     expect(seen.has(look), `${spelling} looks exactly like ${seen.get(look)}`).toBe(false);
     seen.set(look, spelling);
   }
