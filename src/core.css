@@ -334,12 +334,9 @@
   color: var(--carve-ink-soft);
 }
 
-/* The four extended states. `[-]`, `[_]`, `[>]` and `[?]` all render the same
- * unchecked box, so without a rule here they are indistinguishable from an open
- * task and from each other; the engine names the authored character on the item
- * so a stylesheet can tell them apart (spec PART 19, HTML serialization). The
- * signal is on the box rather than on injected text, which keeps the item's
- * accessible name as the engine wrote it. */
+/* `_` spells the same open state as a space. The remaining extended states
+ * need distinct marks on the box; the engine keeps their authored characters
+ * on the item for styling and round trips. */
 .carve li[data-task-state] > input[type="checkbox"] {
   outline-offset: 2px;
 }
@@ -350,8 +347,22 @@
   color: var(--carve-ink-soft);
   text-decoration: line-through;
 }
-.carve li[data-task-state="_"] > input[type="checkbox"] {
-  outline: var(--carve-border-width) dashed var(--carve-neutral);
+.carve li[data-task-state="/"] > input[type="checkbox"] {
+  border-color: var(--carve-accent);
+  background-color: var(--carve-accent-soft);
+  background-image: linear-gradient(135deg, transparent 38%, var(--carve-accent) 39% 61%, transparent 62%);
+  background-position: center;
+  background-size: 70% 70%;
+  background-repeat: no-repeat;
+}
+.carve li[data-task-state="!"] > input[type="checkbox"] {
+  border-color: var(--carve-danger);
+  background-color: var(--carve-danger-wash);
+  background-image: linear-gradient(var(--carve-danger), var(--carve-danger)),
+    radial-gradient(circle, var(--carve-danger) 65%, transparent 70%);
+  background-position: center 30%, center 78%;
+  background-size: 2px 47%, 4px 4px;
+  background-repeat: no-repeat;
 }
 .carve li[data-task-state=">"] > input[type="checkbox"] {
   outline: var(--carve-border-width) solid var(--carve-accent);

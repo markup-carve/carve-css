@@ -54,7 +54,7 @@ Body.
 - [ ] an open task
 - [x] a done task
 - [-] a dropped task
-- [_] a paused task
+- [_] another open task
 - [>] a deferred task
 - [?] a maybe task
 
