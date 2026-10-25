@@ -26,6 +26,10 @@
   --carve-quote-ink: var(--carve-ink);
   --carve-quote-border: var(--carve-border);
 }
+.carve li > input[type="checkbox"]:checked {
+  --carve-task-check-fill: #000000;
+  --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
+}
 
 .carve [role="doc-endnotes"] {
   font-size: var(--carve-print-footnote-size);

@@ -315,6 +315,18 @@ test("a checked task looks different from an open one", async ({ page }) => {
   expect(look, "print falls back to the native box, whose check survives without backgrounds").toBe("auto");
 });
 
+test("print styles only the task fill and keep a visible check in a dark host", async ({ page }) => {
+  await page.setContent(`<html class="dark"><body><article class="carve"><ul>` +
+    `<li><input id="done-box" type="checkbox" checked disabled aria-label="done"> done</li>` +
+    `</ul><span id="success" style="color:var(--carve-success)">success</span></article></body></html>`);
+  for (const file of ["tokens.css", "core.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  await page.addStyleTag({ content: ".dark .carve { --carve-success: #9ece6a; --carve-task-check-icon: none; }" });
+  await page.addStyleTag({ path: `${src}print.css` });
+  await expect(page.locator("#done-box")).toHaveCSS("background-color", "rgb(0, 0, 0)");
+  await expect(page.locator("#success")).toHaveCSS("color", "rgb(158, 206, 106)");
+  expect(await page.locator("#done-box").evaluate((box) => getComputedStyle(box).backgroundImage)).toContain("%23fff");
+});
+
 /* A done item carries `data-task-state="x"` (spec PART 19), so its text can
  * recede without `:has()`; an open item keeps full ink. */
 test("a done task's text recedes", async ({ page }) => {
