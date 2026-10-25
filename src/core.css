@@ -261,6 +261,18 @@
 
 /* Task list items. The engine emits a disabled <input type="checkbox"> with an
  * aria-label, inline in the item text. */
+:root {
+  --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
+}
+/* Keep the dark stroke in sync with the dark --carve-surface in tokens.css. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2314171b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
+  }
+}
+:root[data-theme="dark"] {
+  --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2314171b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
+}
 .carve li > input[type="checkbox"] {
   margin-inline-end: var(--carve-space-2);
   /* Drawn by hand: browsers grey a disabled box and ignore accent-color on it,
@@ -275,17 +287,15 @@
   opacity: 1;
 }
 .carve li > input[type="checkbox"]:checked {
-  border-color: var(--carve-accent);
-  background: var(--carve-accent);
-  box-shadow: inset 0 0 0 0.15em var(--carve-surface);
+  border-color: var(--carve-task-check-fill, var(--carve-success));
+  background: var(--carve-task-check-fill, var(--carve-success)) var(--carve-task-check-icon) center / 80% 80% no-repeat;
 }
-/* The fill is a background, which print may drop and forced colors repaint;
- * the native box draws a real checkmark there. */
+/* Printing and forced colors restore the native checkmark. */
 @media print, (forced-colors: active) {
   .carve li > input[type="checkbox"],
   .carve li > input[type="checkbox"]:checked {
     appearance: auto;
-    box-shadow: none;
+    background-image: none;
   }
 }
 /* The box replaces the bullet: it floats into the marker column, the text starts
@@ -303,7 +313,7 @@
     /* The base rule's 1em box is in the UA's control font (13.3px in Chromium
      * and Firefox, 16px in WebKit); the hang below needs the text's em. */
     font-size: inherit;
-    margin-block: calc((var(--carve-line-height) - 1) * 0.5em) 0;
+    margin-block: calc((var(--carve-line-height) - 1) * 0.5em - 0.1em) 0;
     margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
   }
 }
@@ -314,7 +324,7 @@
   .carve ul > li > input[type="checkbox"]:first-child {
     float: inline-start;
     font-size: inherit;
-    margin-block: calc((var(--carve-line-height) - 1) * 0.5em) 0;
+    margin-block: calc((var(--carve-line-height) - 1) * 0.5em - 0.1em) 0;
     margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
   }
 }

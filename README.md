@@ -169,6 +169,12 @@ Override tokens, not selectors. That is the whole interface:
 
 Every rule in the package resolves through these, so an override reaches the
 construct without you needing to know which selector styles it.
+The checked box uses `--carve-success` unless you set `--carve-task-check-fill`.
+If you change either fill, set `--carve-task-check-icon` on the rendered `.carve`
+element to a checkmark with a contrasting stroke. The default icon follows
+`data-theme` or the OS color preference, so class-switched themes need their
+own icon setting. `print.css` sets both checkbox tokens on the box for black
+ink; a print theme can override them there after loading that file.
 
 ### High contrast and forced colors
 
