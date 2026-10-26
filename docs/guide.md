@@ -74,7 +74,7 @@ always or only when printing is yours to decide. Inside a media query for the
 ordinary case:
 
 ```html
-<link rel="stylesheet" href="../…/print.css" media="print">
+<link rel="stylesheet" href="…/print.css" media="print">
 ```
 
 Unconditionally when a headless browser is the printer, which is how
