@@ -16,8 +16,13 @@
 .carve {
   color: var(--carve-ink);
   background: var(--carve-surface);
-  font-family: var(--carve-font-body);
   line-height: var(--carve-line-height);
+}
+
+/* Zero specificity, so a host rule such as `body { font-family }` wins when
+ * `.carve` sits on that element. An unset token leaves the font inherited. */
+:where(.carve) {
+  font-family: var(--carve-font-body);
 }
 
 /* --- Sections and headings ------------------------------------------------ */

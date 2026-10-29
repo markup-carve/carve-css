@@ -4,6 +4,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Fixes
+
+- A host `body` font now applies when `.carve` sits on `<body>`; before, the page fell back to the browser default serif. `--carve-font-body` and `--carve-font-heading` are unset by default (#61).
+
 ## [0.1.9] - 2026-10-25
 
 ### Improvements
