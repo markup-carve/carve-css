@@ -217,8 +217,13 @@ never heard of; `note`, `info`, `tip`, `success`, `hint`, `warning`, `caution`,
 
 No `@font-face` and no `@import` of a font host. A stylesheet that reaches out
 for a font cannot be used behind a strict CSP, and every consumer here already
-has a type stack, so `--carve-font-body` and `--carve-font-heading` inherit by
-default.
+has a type stack, so `--carve-font-body` and `--carve-font-heading` are unset by
+default and the host's fonts apply. Set them to give rendered Carve its own
+fonts. The default body font rule has zero specificity, so a host rule such as
+`body { font-family: ... }` still wins when `.carve` sits on `<body>`. On that
+element a host `body` rule also beats a set `--carve-font-body`, so set the font
+in one place. Headings keep `.carve h1`-level specificity, so
+`--carve-font-heading` overrides a host `h2 { font-family }` rule.
 
 Dark mode covers all three theme states: `:root` carries the light palette, a
 `prefers-color-scheme` block handles an unstamped dark root, and
