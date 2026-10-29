@@ -408,6 +408,10 @@ function isStyledOnElement(css, name, element) {
 function authored(source, name, engineContainers = new Set()) {
   const escaped = escapeForRegExp(name);
   if (new RegExp(`\\{[^}]*\\.${escaped}(?![\\w-])`).test(source)) return true;
+  /* `{class=w-1/2}` and `{class="a b"}` put author classes in the same slot. */
+  for (const m of source.matchAll(/\{[^}]*\bclass=("[^"]*"|'[^']*'|[^\s}]+)/g)) {
+    if (m[1].replace(/^["']|["']$/g, "").split(/\s+/).includes(name)) return true;
+  }
   /* A container word an extension CLAIMS is not the author's. `::: spoiler` is
    * the spoiler extension's own opener, so reading `.spoiler` as an author
    * class hid the construct from this gate entirely (#27) - which is half of
@@ -418,7 +422,7 @@ function authored(source, name, engineContainers = new Set()) {
    * list item is written `- ::: d` and one in a definition `:  ::: d`, so an
    * anchor only matches the flush-left spelling. The run of colons plus the
    * word after it is the whole signature. */
-  if (new RegExp(`:{3,}\\s*${escaped}(\\s|$)`, "m").test(source)) return true;
+  if (new RegExp(`:{3,}\\s*${escaped}(?=[\\s\\[{]|$)`, "m").test(source)) return true;
   return false;
 }
 
