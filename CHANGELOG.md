@@ -7,6 +7,7 @@ Notable changes to `@markup-carve/carve-css`.
 ### Fixes
 
 - A host `body` font now applies when `.carve` sits on `<body>`; before, the page fell back to the browser default serif. `--carve-font-body` and `--carve-font-heading` are unset by default (#61).
+- A `{.diff}` fence with a caption gets the diff border too; the class sits on the `<figure>` then, not the `<pre>`.
 
 ## [0.1.9] - 2026-10-25
 
