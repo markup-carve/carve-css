@@ -163,6 +163,13 @@ X:1
 -removed
 ```
 
+{#lst-diff .diff}
+```js
++added
+-removed
+```
+^ Listing #: a captioned diff
+
 ## Line breaks
 
 ::: |

@@ -23,6 +23,7 @@ const contracts = [
   ["core.css", "visible focus", /\.carve :focus-visible\s*\{[^{}]*outline:/],
   ["recipes.css", "responsive tables", /\.scroll > table\s*\{[^{}]*min-width:\s*var\(--carve-table-min-width\)/],
   ["recipes.css", "scroll code blocks", /pre\.scroll[^{]*\{[^{}]*max-block-size:[^;]*--carve-scroll-lines[^{}]*overflow:\s*auto/],
+  ["core.css", "captioned diff fences", /\.carve :is\(pre\.diff, figure\.diff > pre\)\s*\{[^{}]*border-inline-start:/],
   ["core.css", "footnote sizing", /\[role="doc-endnotes"\]\s*\{[^{}]*font-size:\s*var\(--carve-footnote-size\)/],
   ["print.css", "print links", /a\[href\^="http"\]::after\s*\{[^{}]*display:\s*var\(--carve-print-link-destinations\)/],
   ["print.css", "print index", /\.index-list\s*\{[^{}]*columns:\s*var\(--carve-print-index-columns\)/],

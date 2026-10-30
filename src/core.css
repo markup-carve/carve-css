@@ -231,11 +231,12 @@
   overflow-x: auto;
 }
 
-/* `{.diff}` above a fence reaches the page as <pre class="diff">. The engine
- * marks no individual lines, so there is nothing here to colour green and red -
- * only the block itself to mark as a diff rather than as a listing. A host that
+/* `{.diff}` above a fence reaches the page as <pre class="diff">, or as
+ * <figure class="diff"> around a bare <pre> when the fence has a caption. The
+ * engine marks no individual lines, so there is nothing here to colour green
+ * and red - only the block itself to mark as a diff rather than as a listing. A host that
  * does mark lines (reveal-carve's plugin wraps them) paints them on top. */
-.carve pre.diff {
+.carve :is(pre.diff, figure.diff > pre) {
   border-inline-start: var(--carve-accent-width) solid var(--carve-border);
 }
 
