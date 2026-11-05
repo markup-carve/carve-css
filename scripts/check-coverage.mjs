@@ -408,8 +408,9 @@ function isStyledOnElement(css, name, element) {
 function authored(source, name, engineContainers = new Set()) {
   const escaped = escapeForRegExp(name);
   if (new RegExp(`\\{[^}]*\\.${escaped}(?![\\w-])`).test(source)) return true;
-  /* `{class=w-1/2}` and `{class="a b"}` put author classes in the same slot. */
-  for (const m of source.matchAll(/\{[^}]*\bclass=("[^"]*"|'[^']*'|[^\s}]+)/g)) {
+  /* `{class=w-1/2}` and `{class="a b"}` put author classes in the same slot;
+   * the key matches in any case, as the engine reads `{CLASS=b}` (corpus 857). */
+  for (const m of source.matchAll(/\{[^}]*\bclass=("[^"]*"|'[^']*'|[^\s}]+)/gi)) {
     if (m[1].replace(/^["']|["']$/g, "").split(/\s+/).includes(name)) return true;
   }
   /* A container word an extension CLAIMS is not the author's. `::: spoiler` is
