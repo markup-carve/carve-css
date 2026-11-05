@@ -49,6 +49,9 @@ Body.
 |= Column |= Another |
 | cell | cell |
 
+|= Item |={>} Price |={~} Note |
+| tea |{>} 3.50 | hot |
+
 ## Lists
 
 - [ ] an open task

@@ -474,3 +474,13 @@ for (const [shape, lists] of Object.entries(TASK_SHAPES)) for (const dir of ["lt
     expect(layout.cardNestedAligned, "a task list nested in a card still hangs its box").toBe(true);
   });
 }
+
+test("braced table alignment survives the engine and CSS", async ({ page }) => {
+  const html = carve.carveToHtml("|= Item |={>} Price |={~} Note |\n| tea |{>} 3.50 | hot |\n");
+  await page.setContent(`<article class="carve">${html}</article>`);
+  for (const file of ["tokens.css", "core.css", "extensions.css", "recipes.css"]) await page.addStyleTag({ path: `${src}${file}` });
+  await expect(page.locator("th").nth(1)).toHaveCSS("text-align", "right");
+  await expect(page.locator("th").nth(2)).toHaveCSS("text-align", "center");
+  await expect(page.locator("td").nth(1)).toHaveCSS("text-align", "right");
+  await expect(page.locator("td").nth(1)).toHaveText("3.50");
+});
