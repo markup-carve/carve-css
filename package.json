@@ -2,7 +2,13 @@
   "name": "@markup-carve/carve-css",
   "version": "0.1.9",
   "description": "Stylesheet for the HTML the Carve markup language renders - admonitions, tab sets, code groups, callouts, figures, footnotes, glossary and index",
-  "keywords": ["carve", "markup", "css", "stylesheet", "theme"],
+  "keywords": [
+    "carve",
+    "markup",
+    "css",
+    "stylesheet",
+    "theme"
+  ],
   "license": "MIT",
   "author": "Mark Scherer",
   "repository": {
@@ -26,8 +32,12 @@
     "./print.css": "./src/print.css",
     "./package.json": "./package.json"
   },
-  "files": ["src"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "src"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "test": "npm run test:coverage && npm run test:quality",
     "test:coverage": "node scripts/check-coverage.mjs",
@@ -35,7 +45,7 @@
     "test:browsers": "playwright test"
   },
   "devDependencies": {
-    "@markup-carve/carve": "^0.1.13",
+    "@markup-carve/carve": "github:markup-carve/carve-js#480abdcbb07cffa2ed5ac2e2efff76b4e4e965eb",
     "@playwright/test": "1.63.0"
   }
 }
