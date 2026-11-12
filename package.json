@@ -45,7 +45,7 @@
     "test:browsers": "playwright test"
   },
   "devDependencies": {
-    "@markup-carve/carve": "github:markup-carve/carve-js#480abdcbb07cffa2ed5ac2e2efff76b4e4e965eb",
+    "@markup-carve/carve": "0.1.16",
     "@playwright/test": "1.63.0"
   }
 }
