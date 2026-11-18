@@ -33,6 +33,7 @@ for (const [file, pattern] of [
   ['extensions.css', /\.carve \.tabs > \.tab-panel\s*\{[^{}]*border-block-start:/],
   ['extensions.css', /\.carve \.swatch-chip\s*\{[^{}]*forced-color-adjust:\s*none/],
   ['print.css', /\.carve \.tabs > \.tab-panel\s*\{[^{}]*display:\s*block/],
+  ['print.css', /\.carve \.tabs > \.tab-panel::before\s*\{[^{}]*content:\s*attr\(aria-label\)/],
   ['contrast.css', /@media \(forced-colors:\s*active\)/],
 ]) {
   if (!pattern.test(css[file])) throw new Error(`0.2 quality rule missing in ${file}: ${pattern}`);

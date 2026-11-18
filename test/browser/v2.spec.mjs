@@ -87,12 +87,16 @@ test('0.2 supplied-tree inline shapes have readable rules', async ({ page }) => 
 });
 
 test('0.2 tab panels all print', async ({ page }) => {
-  const html = '<div class="tabs"><input type="radio" name="tabs-1" id="tabs-1-0" checked><label for="tabs-1-0">One</label><input type="radio" name="tabs-1" id="tabs-1-1"><label for="tabs-1-1">Two</label><div class="tab-panel">First</div><div class="tab-panel">Second</div></div>';
+  const html = '<div class="tabs"><input type="radio" name="tabs-1" id="tabs-1-0" checked><label for="tabs-1-0">One</label><input type="radio" name="tabs-1" id="tabs-1-1"><label for="tabs-1-1">Two</label><div class="tab-panel" aria-label="One">First</div><div class="tab-panel" aria-label="Two">Second</div></div>';
   await styled(page, html, 'light', true);
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.carve .tab-panel')).toHaveCount(2);
   await expect(page.locator('.carve .tab-panel').nth(0)).toBeVisible();
   await expect(page.locator('.carve .tab-panel').nth(1)).toBeVisible();
+  const names = await page.locator('.carve .tab-panel').evaluateAll(nodes =>
+    nodes.map(node => getComputedStyle(node, '::before').content));
+  expect(names[0]).toContain('One');
+  expect(names[1]).toContain('Two');
 });
 
 test('0.2 color swatch renderer output retains its chip', async ({ page }) => {

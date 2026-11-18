@@ -33,6 +33,14 @@
 .carve .tabs > .tab-panel {
   display: block !important;
 }
+/* C2-X-047 gives every panel an accessible name. Print it beside the body,
+ * since the radio labels all precede the panels in the standard HTML. */
+.carve .tabs > .tab-panel::before {
+  content: attr(aria-label);
+  display: block;
+  font-weight: 600;
+  margin-block-end: var(--carve-space-2);
+}
 .carve .tabs > input[type="radio"] { display: none; }
 .carve .tabs > label {
   border-block-end: 0;
