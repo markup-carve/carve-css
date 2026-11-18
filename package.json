@@ -41,7 +41,7 @@
   "scripts": {
     "test": "npm run test:coverage && npm run test:quality",
     "test:coverage": "node scripts/check-coverage.mjs",
-    "test:quality": "node scripts/check-quality-v2.mjs",
+    "test:quality": "node scripts/check-quality.mjs",
     "test:browsers": "playwright test"
   },
   "devDependencies": {
