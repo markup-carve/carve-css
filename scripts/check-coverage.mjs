@@ -91,7 +91,13 @@ if (fixtures.length < 4) throw new Error('both 0.2 fixtures must render in both 
 const extensionText = readFileSync(join(spec, 'extensions.md'), 'utf8');
 const tabsHtml = /HTML with the tabs renderer:\s*```html\n([\s\S]*?)\n```/.exec(extensionText)?.[1];
 if (!tabsHtml?.includes('tab-panel')) throw new Error('0.2 tabs HTML example missing');
-const inputs = [...specCases, ...fixtures, { name: 'extensions/C2-X-043', html: tabsHtml }];
+const inputs = [
+  ...specCases, ...fixtures, { name: 'extensions/C2-X-043', html: tabsHtml },
+  // C2-H-142 and C2-H-151 describe supplied-tree shapes without a source
+  // spelling, so no .crv fixture can reach them.
+  { name: 'html/C2-H-142', html: '<span class="smallcaps">Text</span><ruby>字<rp>(</rp><rt>ji</rt><rp>)</rp></ruby>' },
+  { name: 'html/C2-H-151', html: '<span class="equation-number">Eq 1</span>' },
+];
 const carriers = new Map();
 for (const input of inputs) {
   const html = input.html;

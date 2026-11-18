@@ -39,6 +39,8 @@ A task item carries `class="task"`; its list carries `class="task-list"` when ap
 
 A captioned block uses `<figure>` and `<figcaption>`. A group uses `.carve-figure-group` with `.carve-figure-panel` children. A table caption stays inside the `<table>` as `<caption>`. Footnotes use `[role="doc-endnotes"]`, `[role="doc-noteref"]`, and `[role="doc-backlink"]`. Display and inline math use `.math`, with `.display` and `.inline` as modifiers.
 
+Supplied 0.2 trees can also render `.smallcaps`, `<ruby>`, and `.equation-number`. These have no source spelling in a Carve document. The stylesheet gives small capitals and equation numbers a visible treatment; the browser supplies ruby layout.
+
 The optional 0.2 tabs renderer writes `.tabs` with bare radio inputs, linked labels, and `.tab-panel` children. The screen rule hides the unselected panels when a radio is checked. Without the rule, all panels remain readable. A host writing a selector for a panel should use `.tab-panel`; the 0.1 `.tabs-panel` shape is not the 0.2 standard extension output.
 
 ## Recipes

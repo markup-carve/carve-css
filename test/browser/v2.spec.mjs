@@ -50,3 +50,12 @@ test('0.2 optional tabs renderer selects the matching panel', async ({ page }) =
   await expect(panels.nth(0)).toBeHidden();
   await expect(panels.nth(1)).toBeVisible();
 });
+
+test('0.2 supplied-tree inline shapes have readable rules', async ({ page }) => {
+  // C2-H-142 and C2-H-151 have no source spelling, only a tree rendering.
+  await styled(page, '<p><span class="smallcaps">API</span><span class="equation-number">Eq 1</span></p>');
+  await expect(page.locator('.smallcaps')).toHaveCSS('font-variant-caps', 'small-caps');
+  const size = await page.locator('.equation-number').evaluate(node => parseFloat(getComputedStyle(node).fontSize));
+  expect(size).toBeGreaterThan(0);
+  expect(size).toBeLessThan(16);
+});

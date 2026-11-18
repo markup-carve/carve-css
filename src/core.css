@@ -172,6 +172,16 @@
   font-size: var(--carve-font-size-small);
 }
 
+/* These two shapes come from supplied 0.2 trees (C2-H-142 and C2-H-151). */
+.carve .smallcaps {
+  font-variant-caps: small-caps;
+}
+.carve .equation-number {
+  color: var(--carve-ink-soft);
+  font-size: var(--carve-font-size-small);
+  margin-inline-start: var(--carve-space-2);
+}
+
 /* --- Blocks -------------------------------------------------------------- */
 
 .carve p,
