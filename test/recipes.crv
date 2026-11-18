@@ -6,13 +6,13 @@
 %% class the engine EMITS to the class the CSS TARGETS, so a rename on either
 %% side fails the gate instead of silently rendering unstyled.
 
-# Recipes
+= Recipes
 
 {.lead}
 An opening paragraph, set apart by an attribute line rather than by a construct
 of its own.
 
-## Tree
+== Tree
 
 ::: tree
 - src/
@@ -24,13 +24,13 @@ of its own.
 - tests/
 :::
 
-{data-guides="dotted"}
+{data-guides=dotted}
 ::: tree
 - docs/
   - index.crv
 :::
 
-## Cards
+== Cards
 
 ::: cards
 - *Parse* - source to AST.
@@ -38,16 +38,16 @@ of its own.
 - *Format* - AST back to source.
 :::
 
-## Columns
+== Columns
 
-{data-columns="3"}
+{data-columns=3}
 ::: columns
 Three columns of running text, flowed rather than laid out.
 
 The count comes from an attribute, so one class covers every arity.
 :::
 
-## Gallery
+== Gallery
 
 ::: gallery
 ![A rendered tree](tree.png)
@@ -57,7 +57,7 @@ The count comes from an attribute, so one class covers every arity.
 A caption with an inline ![status icon](status.png) must not become a tile.
 :::
 
-## Steps
+== Steps
 
 ::: steps
 1. Install the package.
@@ -65,45 +65,45 @@ A caption with an inline ![status icon](status.png) must not become a tile.
 3. Add the recipes layer.
 :::
 
-## Overflow and width
+== Overflow and width
 
 ::: scroll
 |= Column |= Another |
-| value   | value    |
+| value | value |
 :::
 
 {.scroll}
-``` js
+```js
 const a = 1;
 ```
 
 {.scroll}
-``` js
+```js
 const b = 2;
 ```
 ^ A captioned listing
 
 ::: wide
 |= Wide |= Table |
-| 1     | 2      |
+| 1 | 2 |
 :::
 
-## Margin note
+== Margin note
 
 ::: aside
 A note set beside the text on a wide screen, and inline on a narrow one.
 :::
 
-## Inline
+== Inline
 
-Status: [beta]{.badge}, [stable]{.badge data-tone="success"},
-[deprecated]{.badge data-tone="danger"}.
+Status: [beta]{.badge}, [stable]{.badge data-tone=success},
+[deprecated]{.badge data-tone=danger}.
 
-## Table modifiers
+== Table modifiers
 
 {.striped .compact .sticky-head}
-|= Engine   |= Recipes |
-| carve-js  | yes      |{.ok}
-| carve-php | yes      |{.ok}
-| carve-rs  | partial  |{.warn}
-| other     | no       |{.fail}
+|= Engine |= Recipes |
+| carve-js | yes |{.ok}
+| carve-php | yes |{.ok}
+| carve-rs | partial |{.warn}
+| other | no |{.fail}

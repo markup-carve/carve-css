@@ -2,15 +2,15 @@
 %% gate's input: a construct missing from here is a construct the gate cannot
 %% check, so add to this file whenever the language grows one.
 
-# A heading
+= A heading
 
 Prose with /emphasis/, *strong*, `code`, a [link](https://example.com), an
-@mention, a #tag, a footnote[^note], {+inserted+}, {-deleted-} and
-{#an editorial comment#}.
+@mention, a #tag, a footnote[^note], {+inserted+}, {-deleted-}, and
+more {_underlined_} text with {~struck~}, {=highlighted=}, {^super^}, {,sub,}, and {#a comment#}.
 
 [^note]: The note's text.
 
-## Admonitions
+== Admonitions
 
 ::: note "With a title"
 Body.
@@ -32,27 +32,32 @@ Body.
 Body.
 :::
 
-## Quotes and figures
+== Quotes and figures
 
 > A quoted line.
 ^ The attribution
 
 ::: figure
-![alt text](image.png)
-^ The caption
+![First panel](image.png)
+^ First panel
+
+![Second panel](image-two.png)
+^ Second panel
 :::
+^ The group caption
 
 ![An uncaptioned block image](wide-image.png)
 
-## Tables
+== Tables
 
 |= Column |= Another |
 | cell | cell |
+^ A table caption
 
 |= Item |={>} Price |={~} Note |
 | tea |{>} 3.50 | hot |
 
-## Lists
+== Lists
 
 - [ ] an open task
 - [x] a done task
@@ -61,35 +66,37 @@ Body.
 - [>] a deferred task
 - [?] a maybe task
 
-## Code
+== Code
 
-``` js
+```js
 const a = 1; // <1>
 ```
 
 <1> A callout bound to the marker above.
 
 ::: code-group
-``` js [one.js]
+```js [one.js]
 a
 ```
-``` php [two.php]
+
+```php [two.php]
 b
 ```
 :::
 
-## Tabs
+== Tabs
 
-::: tabs
+:::: tabs
 ::: tab "First"
 first panel
 :::
+
 ::: tab "Second"
 second panel
 :::
-:::
+::::
 
-## Disclosure
+== Disclosure
 
 Ending: :spoiler[the butler did it] and then the credits roll.
 
@@ -97,20 +104,21 @@ Ending: :spoiler[the butler did it] and then the credits roll.
 Revealed.
 :::
 
-## Math
+== Math
 
 $$`E = mc^2`
 
-## Reference apparatus
+== Reference apparatus
 
 ::: glossary
-API
-:  Application Programming Interface
+:: API
+: Application Programming Interface
 :::
 
 An :index[indexed term] in prose.
 
 ::: toc
+
 :::
 
 ::: list-table
@@ -120,7 +128,7 @@ An :index[indexed term] in prose.
   - row two, cell two
 :::
 
-## Diagrams
+== Diagrams
 
 %% Every diagram renderer the stylesheet has rules for. The spec corpus carries
 %% no diagram fence at all, so without these the rules for .mermaid, .d2 and
@@ -158,7 +166,7 @@ X:1
 { "type": "bar" }
 ```
 
-## Diff presentation
+== Diff presentation
 
 {.diff}
 ```js
@@ -173,7 +181,7 @@ X:1
 ```
 ^ Listing #: a captioned diff
 
-## Line breaks
+== Line breaks
 
 ::: |
 a line
@@ -185,9 +193,10 @@ one
 two
 :::
 
-## Highlighted text and references
+== Highlighted text and references
 
-A =highlighted= span.
+A {=highlighted=} span.
 
 ::: references
+
 :::

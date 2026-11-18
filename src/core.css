@@ -172,6 +172,16 @@
   font-size: var(--carve-font-size-small);
 }
 
+/* These two shapes come from supplied 0.2 trees (C2-H-142 and C2-H-151). */
+.carve .smallcaps {
+  font-variant-caps: small-caps;
+}
+.carve .equation-number {
+  color: var(--carve-ink-soft);
+  font-size: var(--carve-font-size-small);
+  margin-inline-start: var(--carve-space-2);
+}
+
 /* --- Blocks -------------------------------------------------------------- */
 
 .carve p,
@@ -311,7 +321,8 @@
  * A task list names itself (spec PART 19); output from an engine that predates
  * the class is reached through a gated `:has()` instead. */
 @supports (float: inline-start) {
-  .carve ul.task-list > li {
+  .carve ul.task-list > li,
+  .carve ul.task-list > li.task {
     list-style: none;
   }
   .carve ul.task-list > li > input[type="checkbox"]:first-child {
@@ -512,6 +523,10 @@
 .carve .carve-figure-panel {
   flex: 1 1 16rem;
   margin: 0;
+}
+/* A titled figure opener is a plain div in 0.2, not a figure group. */
+.carve div.figure {
+  margin-block-end: var(--carve-space-4);
 }
 
 /* --- Tables -------------------------------------------------------------- */

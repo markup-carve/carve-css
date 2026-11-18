@@ -4,6 +4,12 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Carve 0.2 preview
+
+- Pin the 0.2 reference engine for coverage and render the 0.2 spec HTML cases and canonical fixtures.
+- Style the 0.2 task item, titled plain figure, and optional tab panel shapes. Add light and dark browser previews.
+- Update the guide for 0.2 source syntax and HTML hooks.
+
 ## [0.1.10] - 2026-11-12
 
 ### Fixes
