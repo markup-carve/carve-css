@@ -29,7 +29,7 @@ if (stale.length || absent.length) {
 for (const [file, pattern] of [
   ['core.css', /\.carve \.admonition\s*\{[^{}]*border-inline-start:/],
   ['core.css', /\.carve \.smallcaps\s*\{[^{}]*font-variant-caps:/],
-  ['core.css', /\.carve li\[data-task-state="\/"\]/],
+  ['core.css', /\.carve li\.task\[data-task-state="\/"\]/],
   ['extensions.css', /\.carve \.tabs > \.tab-panel\s*\{[^{}]*border-block-start:/],
   ['extensions.css', /\.carve \.swatch-chip\s*\{[^{}]*forced-color-adjust:\s*none/],
   ['print.css', /\.carve \.tabs > \.tab-panel\s*\{[^{}]*display:\s*block/],

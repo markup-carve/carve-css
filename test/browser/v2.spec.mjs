@@ -19,7 +19,7 @@ test('0.2 fixture renders its changed semantic HTML', async ({ page }) => {
   await expect(page.locator('.carve aside.admonition.note')).toHaveCount(1);
   await expect(page.locator('.carve figure.carve-figure-group > figure.carve-figure-panel')).toHaveCount(2);
   await expect(page.locator('.carve table > caption')).toHaveText('A table caption');
-  await expect(page.locator('.carve li.task')).toHaveCount(8);
+  await expect(page.locator('.carve li.task')).toHaveCount(15);
   await expect(page.locator('.carve .tabs > .tab')).toHaveCount(2);
   await expect(page.locator('.carve .tabs > .tab').first()).toHaveCSS('border-top-style', 'solid');
   await expect(page.locator('.carve sup').first()).toBeVisible();
@@ -103,4 +103,166 @@ test('0.2 color swatch renderer output retains its chip', async ({ page }) => {
   await styled(page, '<p><span class="swatch"><span class="swatch-chip" style="background-color:#aabbcc"></span><span class="swatch-val">#aabbcc</span></span></p>');
   await expect(page.locator('.swatch')).toHaveCSS('display', 'inline-flex');
   await expect(page.locator('.swatch-chip')).toHaveCSS('background-color', 'rgb(170, 187, 204)');
+});
+
+// C2-H-032: a list mixes task and plain items, bullet and ordered.
+const textStart = (item) => {
+  const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT, {
+    acceptNode: node => node.textContent.trim() && node.parentElement.closest('li') === item
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
+  });
+  const node = walker.nextNode();
+  const offset = node.textContent.search(/\S/);
+  const range = document.createRange();
+  range.setStart(node, offset);
+  range.setEnd(node, offset + 1);
+  return range.getBoundingClientRect();
+};
+
+const listAfter = (page, intro) =>
+  page.locator('.carve p', { hasText: intro }).locator('xpath=following-sibling::*[1]');
+
+for (const theme of ['light', 'dark']) {
+  test(`0.2 mixed bullet list keeps plain bullets and one text column (${theme})`, async ({ page }) => {
+    await styled(page, rendered.stdout, theme);
+    const list = listAfter(page, 'A mixed bullet list:');
+    await expect(list).toHaveClass('task-list');
+    const layout = await list.evaluate((ul, src) => {
+      const textStart = new Function(`return ${src}`)();
+      return [...ul.children].map(li => ({
+        task: li.classList.contains('task'),
+        marker: getComputedStyle(li).listStyleType,
+        text: textStart(li).left,
+        box: li.querySelector(':scope > input')?.getBoundingClientRect().left ?? null,
+        content: li.getBoundingClientRect().left,
+      }));
+    }, textStart.toString());
+    expect(layout.map(item => item.task)).toEqual([false, true, true, false]);
+    for (const item of layout) {
+      if (item.task) {
+        expect(item.marker, 'a bullet task item draws no bullet').toBe('none');
+        expect(item.box, 'the box hangs into the marker column').toBeLessThan(item.content);
+      } else {
+        expect(item.marker, 'a plain item keeps its bullet').toBe('disc');
+      }
+      expect(Math.abs(item.text - layout[0].text), 'task and plain text share a column').toBeLessThan(1);
+    }
+  });
+
+  test(`0.2 mixed ordered list numbers every item and puts the box after the number (${theme})`, async ({ page }) => {
+    await styled(page, rendered.stdout, theme);
+    const list = listAfter(page, 'A mixed ordered list:');
+    await expect(list).toHaveAttribute('start', '3');
+    const layout = await list.evaluate((ol, src) => {
+      const textStart = new Function(`return ${src}`)();
+      return [...ol.children].map(li => {
+        const box = li.querySelector(':scope > input')?.getBoundingClientRect();
+        return {
+          task: li.classList.contains('task'),
+          marker: getComputedStyle(li).listStyleType,
+          display: getComputedStyle(li).display,
+          content: li.getBoundingClientRect().left,
+          boxLeft: box?.left ?? null,
+          boxRight: box?.right ?? null,
+          text: textStart(li).left,
+          gap: parseFloat(getComputedStyle(li).fontSize) * 0.5,
+        };
+      });
+    }, textStart.toString());
+    expect(layout.map(item => item.task)).toEqual([false, true, true, false]);
+    for (const item of layout) {
+      expect(item.marker, 'plain and task items are numbered alike').toBe('decimal');
+      expect(item.display).toBe('list-item');
+      if (!item.task) continue;
+      expect(Math.abs(item.boxLeft - item.content), 'the box starts where text would').toBeLessThan(1);
+      expect(item.text - item.boxRight, 'text follows the box after a gap').toBeGreaterThan(2);
+    }
+    const plainText = layout.find(item => !item.task).text;
+    const taskBoxes = layout.filter(item => item.task).map(item => item.boxLeft);
+    for (const box of taskBoxes) expect(Math.abs(box - plainText)).toBeLessThan(1);
+  });
+
+  test(`0.2 loose mixed list keeps the box beside the first paragraph (${theme})`, async ({ page }) => {
+    await styled(page, rendered.stdout, theme);
+    const list = listAfter(page, 'A loose mixed list:');
+    const layout = await list.evaluate(ul => {
+      const [task, plain] = ul.children;
+      const box = task.querySelector(':scope > input').getBoundingClientRect();
+      const first = task.querySelector(':scope > p').getBoundingClientRect();
+      const plainP = plain.querySelector(':scope > p').getBoundingClientRect();
+      return {
+        taskMarker: getComputedStyle(task).listStyleType,
+        plainMarker: getComputedStyle(plain).listStyleType,
+        boxMiddle: (box.top + box.bottom) / 2,
+        lineTop: first.top,
+        lineBottom: first.top + parseFloat(getComputedStyle(task.querySelector('p')).lineHeight),
+        boxRight: box.right,
+        pLeft: first.left,
+        plainLeft: plainP.left,
+      };
+    });
+    expect(layout.taskMarker).toBe('none');
+    expect(layout.plainMarker).toBe('disc');
+    expect(layout.boxMiddle, 'the box sits on the first line').toBeGreaterThan(layout.lineTop);
+    expect(layout.boxMiddle).toBeLessThan(layout.lineBottom);
+    expect(layout.boxRight).toBeLessThanOrEqual(layout.pLeft);
+    expect(Math.abs(layout.pLeft - layout.plainLeft)).toBeLessThan(1);
+  });
+
+  test(`0.2 nested lists keep their own markers both ways (${theme})`, async ({ page }) => {
+    await styled(page, rendered.stdout, theme);
+    const list = listAfter(page, 'Nested both ways:');
+    const layout = await list.evaluate((ul, src) => {
+      const textStart = new Function(`return ${src}`)();
+      const [task, plain] = ul.children;
+      const inTask = [...task.querySelector(':scope > ul').children];
+      const inPlain = [...plain.querySelector(':scope > ul').children];
+      return {
+        outer: [getComputedStyle(task).listStyleType, getComputedStyle(plain).listStyleType],
+        inTask: inTask.map(li => getComputedStyle(li).listStyleType),
+        inPlain: inPlain.map(li => ({
+          task: li.classList.contains('task'),
+          marker: getComputedStyle(li).listStyleType,
+          text: textStart(li).left,
+          box: li.querySelector(':scope > input')?.getBoundingClientRect().left ?? null,
+          content: li.getBoundingClientRect().left,
+        })),
+      };
+    }, textStart.toString());
+    expect(layout.outer).toEqual(['none', 'disc']);
+    expect(layout.inTask, 'a plain list nested in a task keeps bullets').toEqual(['circle', 'circle']);
+    const [nestedTask, nestedPlain] = layout.inPlain;
+    expect(nestedTask.task).toBe(true);
+    expect(nestedTask.marker).toBe('none');
+    expect(nestedTask.box).toBeLessThan(nestedTask.content);
+    expect(nestedPlain.marker).toBe('circle');
+    expect(Math.abs(nestedTask.text - nestedPlain.text)).toBeLessThan(1);
+  });
+}
+
+test('0.2 every task state gives its box a distinct look', async ({ page }) => {
+  await styled(page, rendered.stdout);
+  const looks = await page.locator('.carve li.task > input').evaluateAll(boxes => {
+    const seen = new Map();
+    for (const box of boxes) {
+      const state = box.parentElement.dataset.taskState ?? ' ';
+      if (seen.has(state)) continue;
+      const style = getComputedStyle(box);
+      seen.set(state, [style.borderColor, style.backgroundColor, style.backgroundImage,
+        style.outlineStyle, style.outlineColor].join('|'));
+    }
+    return Object.fromEntries(seen);
+  });
+  expect(Object.keys(looks).sort()).toEqual([' ', '!', '-', '/', '>', '?', '_', 'x']);
+  expect(looks._, 'underscore is the open state').toBe(looks[' ']);
+  const distinct = Object.entries(looks).filter(([state]) => state !== '_').map(([, look]) => look);
+  expect(new Set(distinct).size).toBe(distinct.length);
+});
+
+test('0.2 a checkbox outside a task item gets no task styling', async ({ page }) => {
+  await styled(page, '<ul class="task-list"><li class="task" style="list-style: none"><input type="checkbox" disabled aria-label="a"> a</li>' +
+    '<li id="plain"><input id="raw" type="checkbox"> raw</li></ul>');
+  await expect(page.locator('#plain')).toHaveCSS('list-style-type', 'disc');
+  await expect(page.locator('#raw')).not.toHaveCSS('appearance', 'none');
+  await expect(page.locator('#raw')).toHaveCSS('float', 'none');
 });

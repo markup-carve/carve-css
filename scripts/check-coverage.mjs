@@ -123,6 +123,15 @@ for (const input of inputs) {
   }
 }
 const missing = [];
+// C2-H-032: a class name alone does not prove a list can mix task and plain
+// items, so the task rules must key on the item and reach ordered lists.
+for (const [label, pattern] of [
+  ['li.task', /(^|[\s,>+~(])li\.task(?![\w-])/m],
+  ['ol.task-list', /(^|[\s,>+~(])ol\.task-list(?![\w-])/m],
+  ['ul.task-list > li.task', /ul\.task-list\s*>\s*li\.task(?![\w-])/],
+]) {
+  if (!selectors.some(selector => pattern.test(selector))) missing.push(`selector:${label} has no rule`);
+}
 for (const [key, where] of names) {
   const [kind, name] = key.split(':');
   const covered = kind === 'class' ? hasClass(name) || unstyledClasses.has(name) || name.startsWith('language-') :
