@@ -1,0 +1,52 @@
+import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+
+const css = ['tokens.css', 'core.css', 'extensions.css', 'recipes.css', 'contrast.css']
+  .map(file => readFileSync(new URL(`../../src/${file}`, import.meta.url), 'utf8')).join('\n');
+const source = readFileSync(new URL('../constructs.crv', import.meta.url), 'utf8');
+const cli = new URL('../../node_modules/@markup-carve/carve/dist/cli2.js', import.meta.url).pathname;
+const rendered = spawnSync(process.execPath, [cli, 'render', '-'], { input: source, encoding: 'utf8' });
+if (rendered.status !== 0) throw new Error(rendered.stderr);
+
+async function styled(page, html, theme = 'light') {
+  await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body><article class="carve">${html}</article></body></html>`);
+}
+
+test('0.2 fixture renders its changed semantic HTML', async ({ page }) => {
+  await styled(page, rendered.stdout);
+  await expect(page.locator('.carve aside.admonition.note')).toHaveCount(1);
+  await expect(page.locator('.carve figure.carve-figure-group > figure.carve-figure-panel')).toHaveCount(2);
+  await expect(page.locator('.carve table > caption')).toHaveText('A table caption');
+  await expect(page.locator('.carve li.task')).toHaveCount(6);
+  await expect(page.locator('.carve sup').first()).toBeVisible();
+  await expect(page.locator('.carve sub')).toBeVisible();
+});
+
+test('0.2 admonitions and task controls receive theme rules', async ({ page }) => {
+  for (const theme of ['light', 'dark']) {
+    await styled(page, rendered.stdout, theme);
+    const panel = page.locator('.carve aside.admonition.note');
+    expect(parseFloat(await panel.evaluate(node => getComputedStyle(node).borderLeftWidth))).toBeGreaterThan(0);
+    const checkbox = page.locator('.carve li.task input[type="checkbox"]').first();
+    expect(parseFloat(await checkbox.evaluate(node => getComputedStyle(node).borderLeftWidth))).toBeGreaterThan(0);
+  }
+});
+
+test('0.2 optional tabs renderer selects the matching panel', async ({ page }) => {
+  // C2-X-043 to C2-X-048: this is the standard renderer's HTML shape.
+  const html = '<div class="tabs" role="group" aria-label="Tabs">' +
+    '<input type="radio" name="tabs-1" id="tabs-1-0" checked>' +
+    '<label for="tabs-1-0">Install</label>' +
+    '<input type="radio" name="tabs-1" id="tabs-1-1">' +
+    '<label for="tabs-1-1">Use</label>' +
+    '<div class="tab-panel" role="group" aria-label="Install"><p>Run setup.</p></div>' +
+    '<div class="tab-panel" role="group" aria-label="Use"><p>Open the app.</p></div></div>';
+  await styled(page, html);
+  const panels = page.locator('.carve .tab-panel');
+  await expect(panels.nth(0)).toBeVisible();
+  await expect(panels.nth(1)).toBeHidden();
+  await page.getByText('Use', { exact: true }).click();
+  await expect(panels.nth(0)).toBeHidden();
+  await expect(panels.nth(1)).toBeVisible();
+});
