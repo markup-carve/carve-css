@@ -1,17 +1,4 @@
-/*
- * Carve print layer.
- *
- * Load AFTER core.css and extensions.css. It is not wrapped in @media print, so
- * a consumer can also apply it deliberately - carve-pdf renders through a
- * headless browser and wants these rules on screen, which is exactly why
- * carve-pdf had to write its own print stylesheet rather than reuse anyone's.
- *
- * For the ordinary case, load it inside a print media query:
- *   <link rel="stylesheet" href=".../print.css" media="print">
- */
-
-/* Paper is white and ink is black regardless of the reader's theme: a dark
- * palette sent to a printer is a page of toner. */
+/* Optional 0.2 print layer. Load after core.css and extensions.css. */
 .carve {
   --carve-surface: #ffffff;
   --carve-sunk: #f2f2f2;
@@ -30,80 +17,40 @@
   --carve-task-check-fill: #000000;
   --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
 }
-
 .carve [role="doc-endnotes"] {
   font-size: var(--carve-print-footnote-size);
 }
-
-/* A heading should not be the last line on a page, and a construct should not
- * be split across a page break when it can be avoided. */
 .carve :is(h1, h2, h3, h4, h5, h6) {
   break-after: avoid;
   break-inside: avoid;
 }
-.carve :is(pre, blockquote, figure, table, .admonition, .spoiler, .callouts) {
+.carve :is(pre, blockquote, figure, table, .admonition) {
   break-inside: avoid;
 }
-.carve tr {
-  break-inside: avoid;
+.carve tr { break-inside: avoid; }
+.carve thead { display: table-header-group; }
+/* Every 0.2 tab panel must print, regardless of the checked radio. */
+.carve .tabs > .tab-panel {
+  display: block !important;
 }
-/* A table running over a page break repeats its header, or the second page is
- * unreadable. */
-.carve thead {
-  display: table-header-group;
-}
-
-/* Interactive constructs have no interaction on paper. Every panel is shown,
- * with its label, rather than only whichever tab happened to be checked. */
-.carve .tabs-panel,
-.carve .code-group-panel {
+/* C2-X-047 gives every panel an accessible name. Print it beside the body,
+ * since the radio labels all precede the panels in the standard HTML. */
+.carve .tabs > .tab-panel::before {
+  content: attr(aria-label);
   display: block;
+  font-weight: 600;
+  margin-block-end: var(--carve-space-2);
 }
-.carve .tabs-radio,
-.carve .code-group-radio {
-  display: none;
-}
-.carve .tabs-label,
-.carve .code-group-label {
+.carve .tabs > input[type="radio"] { display: none; }
+.carve .tabs > label {
   border-block-end: 0;
   color: var(--carve-ink);
   font-weight: 600;
 }
-/* A disclosure is closed on screen and has to be open on paper: its content is
- * part of the document, and the reader cannot click it. Keyed on `details`,
- * because the class is also an inline `<span class="spoiler">` and forcing that
- * to a block would put a word of running text on its own line (#25).
- * `:where()` keeps the specificity the class-only selector had. */
-.carve :where(details).spoiler {
-  display: block;
-}
-.carve :where(details).spoiler > :not(summary) {
-  display: revert;
-}
-/* And a spoiler is never blurred on paper: a blur that cannot be hovered is
- * just an unreadable passage in a printed document. */
-.carve .spoiler {
-  filter: none;
-}
-
-/* The permalink anchor is hover chrome; on paper it is a stray character. */
-.carve .permalink {
-  display: none;
-}
-
-/* A link's destination is invisible on paper unless it is printed. Only for
- * absolute URLs: printing "(#section-3)" after every cross-reference adds noise
- * without adding information. */
 .carve a[href^="http"]::after {
   content: " (" attr(href) ")";
   display: var(--carve-print-link-destinations);
   font-size: 0.85em;
   color: var(--carve-ink-soft);
   word-break: break-all;
-}
-
-/* Two columns of index on paper is right; two columns that break mid-entry is
- * not, and print engines honour break-inside less reliably than browsers. */
-.carve .index-list {
-  columns: var(--carve-print-index-columns);
 }

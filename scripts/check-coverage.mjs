@@ -33,11 +33,13 @@ const unstyledClasses = new Set([
   'inline', 'permalink-wrapper', 'permalink-hover',
   // Later directive placeholders carry source meaning but place no content.
   'footnotes', 'index',
+  // Neutral admonition kinds share the .admonition rule on their aside.
+  'example', 'quote',
   // Unknown optional inline names are neutral fallback spans in these cases.
-  'ext-spoiler', 'ext-note', 'ext-n', 'ext-foo', 'ext-f', 'ext-kbd',
+  'ext-spoiler', 'ext-note', 'ext-n', 'ext-foo', 'ext-f', 'ext-kbd', 'ext-index',
 ]);
 const unstyledRoles = new Set(['group', 'math', 'img', 'tablist', 'tab', 'tabpanel']);
-const unstyledElements = new Set(['abbr', 'b', 'br', 'caption', 'col', 'colgroup', 'dfn', 'em', 'kbd', 'label', 'nav', 'rp', 'rt', 'ruby', 'samp', 'script', 'sub', 'sup', 'template', 'time', 'tfoot', 'u', 'var']);
+const unstyledElements = new Set(['abbr', 'b', 'br', 'caption', 'col', 'colgroup', 'dfn', 'em', 'kbd', 'label', 'nav', 'rp', 'rt', 'ruby', 'samp', 'script', 'span', 'sub', 'sup', 'template', 'time', 'tfoot', 'u', 'var']);
 // Import and source-position carriers carry facts for tools, not appearance.
 const unstyledData = new Set([
   'data-callout', 'data-carve-raw', 'data-carve-ref',

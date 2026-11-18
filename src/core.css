@@ -48,32 +48,6 @@
   text-wrap: balance;
 }
 
-/* The permalink anchor the heading-permalinks extension adds. Hidden until the
- * heading is hovered or the link itself is focused - keyboard users must be
- * able to reach it, so this is opacity rather than display:none. */
-.carve .permalink {
-  opacity: 0;
-  margin-inline-start: var(--carve-space-2);
-  text-decoration: none;
-  transition: opacity 120ms ease-in-out;
-}
-.carve :is(h1, h2, h3, h4, h5, h6):hover .permalink,
-.carve .permalink:focus-visible {
-  opacity: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .carve .permalink {
-    transition: none;
-  }
-}
-
-/* Auto-numbering, when the section-numbers extension is on. */
-.carve .section-number {
-  color: var(--carve-ink-soft);
-  margin-inline-end: var(--carve-space-2);
-  font-variant-numeric: tabular-nums;
-}
-
 /* --- Inline -------------------------------------------------------------- */
 
 .carve a {
@@ -401,11 +375,7 @@
 
 /* --- Admonitions --------------------------------------------------------- */
 
-/* <aside class="admonition TYPE"> plus an optional
- * <p class="admonition-title">. The type word comes from the source, so it is
- * an open vocabulary: the base rule has to stand on its own for a type this
- * package has never heard of, and the semantic colours below are additions
- * rather than requirements. */
+/* C2-H-154: one of the registered admonition kinds on an aside. */
 .carve .admonition {
   --carve-adm: var(--carve-neutral);
   --carve-adm-wash: var(--carve-neutral-wash);
@@ -428,23 +398,18 @@
   --carve-adm: var(--carve-info);
   --carve-adm-wash: var(--carve-info-wash);
 }
-.carve .admonition:is(.tip, .success, .hint) {
+.carve .admonition:is(.tip, .success) {
   --carve-adm: var(--carve-success);
   --carve-adm-wash: var(--carve-success-wash);
 }
-.carve .admonition:is(.warning, .caution, .attention) {
+.carve .admonition.warning {
   --carve-adm: var(--carve-warn);
   --carve-adm-wash: var(--carve-warn-wash);
 }
-.carve .admonition:is(.danger, .error, .bug) {
+.carve .admonition.danger {
   --carve-adm: var(--carve-danger);
   --carve-adm-wash: var(--carve-danger-wash);
 }
-.carve .admonition.important {
-  --carve-adm: var(--carve-accent);
-  --carve-adm-wash: var(--carve-accent-soft);
-}
-
 /* The label a `[ref]` on a container produces. */
 .carve .div-label {
   color: var(--carve-ink-soft);
@@ -597,7 +562,61 @@
   text-decoration: none;
 }
 
-/* A citation, when the citations extension is on. */
-.carve .citation {
-  white-space: nowrap;
+
+/* 0.2 core directives and math. */
+.carve .toc {
+  border: var(--carve-border-width) solid var(--carve-rule);
+  border-radius: var(--carve-radius);
+  padding: var(--carve-space-3) var(--carve-space-4);
+  margin-block-end: var(--carve-space-4);
+  background: var(--carve-sunk);
+  font-size: var(--carve-font-size-small);
+}
+.carve .toc ul {
+  list-style: none;
+  padding-inline-start: var(--carve-space-4);
+  margin-block: 0;
+}
+.carve .toc > ul {
+  padding-inline-start: 0;
+}
+.carve .toc a {
+  text-decoration: none;
+}
+.carve .toc a:hover {
+  text-decoration: underline;
+}
+/* An empty toc means the document had no headings to collect. Rendering an
+ * empty bordered box as if it were content is worse than rendering nothing. */
+.carve .toc:empty {
+  display: none;
+}
+
+.carve .glossary {
+  border-inline-start: var(--carve-accent-width) solid var(--carve-rule);
+  padding-inline-start: var(--carve-space-4);
+  margin-block-end: var(--carve-space-4);
+}
+.carve .references {
+  margin-block-end: var(--carve-space-4);
+  font-size: var(--carve-font-size-small);
+}
+.carve .references > p {
+  padding-inline-start: var(--carve-space-4);
+  text-indent: calc(-1 * var(--carve-space-4));
+  margin-block-end: var(--carve-space-2);
+}
+.carve .references:empty {
+  display: none;
+}
+
+.carve .math {
+  font-family: var(--carve-font-mono);
+}
+/* Display math is its own block and can be wider than the measure. */
+.carve .math.display {
+  display: block;
+  overflow-x: auto;
+  margin-block: var(--carve-space-4);
+  text-align: center;
 }
