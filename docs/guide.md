@@ -41,7 +41,7 @@ A captioned block uses `<figure>` and `<figcaption>`. A group uses `.carve-figur
 
 Supplied 0.2 trees can also render `.smallcaps`, `<ruby>`, and `.equation-number`. These have no source spelling in a Carve document. The stylesheet gives small capitals and equation numbers a visible treatment; the browser supplies ruby layout.
 
-The optional 0.2 tabs renderer writes `.tabs` with bare radio inputs, linked labels, and `.tab-panel` children. The screen rule hides the unselected panels when a radio is checked. Without the rule, all panels remain readable. A host writing a selector for a panel should use `.tab-panel`; the 0.1 `.tabs-panel` shape is not the 0.2 standard extension output.
+The optional 0.2 tabs renderer writes `.tabs` with bare radio inputs, linked labels, and `.tab-panel` children. The screen rule hides the unselected panels when a radio is checked. Without the rule, all panels remain readable. With the extension off, the core writes `.tabs > .tab` divs and this stylesheet shows every body as a readable fallback. A host writing a selector for an interactive panel should use `.tab-panel`; the 0.1 `.tabs-panel` shape is not the 0.2 standard extension output.
 
 ## Recipes
 
@@ -77,10 +77,10 @@ Override custom properties on the root or on `.carve`:
 
 The light palette is the default. An unstamped root follows `prefers-color-scheme`. Set `data-theme="light"` or `data-theme="dark"` on the root for an explicit choice. The optional `contrast.css` also follows increased contrast and forced colors. Set `data-carve-contrast="high"` on the root to request its high contrast palette.
 
-`print.css` is not in the main import. Load it with `media="print"` or include it unconditionally in a dedicated print renderer. It uses print tokens for footnote size, index columns, and link destinations.
+`print.css` is not in the main import. Load it with `media="print"` or include it unconditionally in a dedicated print renderer. It uses print tokens for footnote size and link destinations, and prints every tab panel.
 
 ## Checks and previews
 
-`npm test` compares selectors with the HTML in the 0.2 spec examples and clause cases, plus both local fixtures rendered in interactive and static mode. A new emitted class, role, element, or renderer-owned data attribute fails unless it has a rule or a named semantic exemption. `npm run test:browsers` checks behavior in Chromium, Firefox, and WebKit. The 0.2 tests cover semantic output, light and dark themes, and the standard tabs renderer.
+`npm test` compares selectors with the HTML in the 0.2 spec examples and clause cases, plus both local fixtures rendered in interactive and static mode. A new emitted class, role, element, or renderer-owned data attribute fails unless it has a rule or a named semantic exemption. It also refuses the obsolete 0.1 selector classes. `npm run test:browsers` checks the 0.2 behavior in Chromium, Firefox, and WebKit. The older 0.1 browser specs stay in the repository as historical source but are outside the `next2` browser gate.
 
 The [light before](screenshots/constructs-01-light.png), [light after](screenshots/constructs-02-light.png), [dark before](screenshots/constructs-01-dark.png), and [dark after](screenshots/constructs-02-dark.png) images are headless renders of the constructs page at a 1280 pixel viewport.

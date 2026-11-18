@@ -28,7 +28,19 @@ Body.
 Body.
 :::
 
-::: important "Important"
+::: info "Information"
+Body.
+:::
+
+::: success "Success"
+Body.
+:::
+
+::: example "Example"
+Body.
+:::
+
+::: quote "Quoted"
 Body.
 :::
 
@@ -63,6 +75,8 @@ Body.
 - [x] a done task
 - [-] a dropped task
 - [_] another open task
+- [/] an in-progress task
+- [!] a blocked task
 - [>] a deferred task
 - [?] a maybe task
 
@@ -72,17 +86,7 @@ Body.
 const a = 1; // <1>
 ```
 
-<1> A callout bound to the marker above.
-
-::: code-group
-```js [one.js]
-a
-```
-
-```php [two.php]
-b
-```
-:::
+This code block keeps its language on the code element.
 
 == Tabs
 
@@ -96,14 +100,6 @@ second panel
 :::
 ::::
 
-== Disclosure
-
-Ending: :spoiler[the butler did it] and then the credits roll.
-
-::: spoiler "Hidden"
-Revealed.
-:::
-
 == Math
 
 $$`E = mc^2`
@@ -115,24 +111,18 @@ $$`E = mc^2`
 : Application Programming Interface
 :::
 
-An :index[indexed term] in prose.
-
 ::: toc
 
 :::
 
-::: list-table
-- - row one, cell one
-  - row one, cell two
-- - row two, cell one
-  - row two, cell two
+::: references
+One source.
 :::
 
-== Diagrams
+== Fenced languages
 
-%% Every diagram renderer the stylesheet has rules for. The spec corpus carries
-%% no diagram fence at all, so without these the rules for .mermaid, .d2 and
-%% the rest are checked against nothing.
+%% These render as ordinary code fences in the 0.2 core. Language classes are
+%% left to a syntax highlighter.
 
 ```mermaid
 graph TD; a-->b;

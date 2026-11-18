@@ -73,7 +73,6 @@
   --carve-footnote-size: var(--carve-font-size-small);
   --carve-footnote-rule-width: 25%;
   --carve-print-link-destinations: inline;
-  --carve-print-index-columns: 2;
   --carve-print-footnote-size: 0.8em;
 
   /* Space. One scale, so constructs align with each other rather than each
@@ -86,12 +85,7 @@
 
   --carve-radius: 3px;
   --carve-border-width: 1px;
-  /* How far an inline spoiler's text is blurred. In `em`, so it scales with
-   * whatever size the spoiler sits in. 0.25em is 4px at a 16px body: measured,
-   * that is where stroke contrast falls to 3% of sharp text and the word keeps
-   * its own outline instead of bleeding into its neighbours. */
-  --carve-spoiler-blur: 0.25em;
-  /* The stripe down the side of an admonition, a callout, a blockquote. */
+  /* The stripe down the side of an admonition or a blockquote. */
   --carve-accent-width: 3px;
 }
 

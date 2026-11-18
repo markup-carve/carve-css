@@ -4,13 +4,14 @@ import { spawnSync } from 'node:child_process';
 
 const css = ['tokens.css', 'core.css', 'extensions.css', 'recipes.css', 'contrast.css']
   .map(file => readFileSync(new URL(`../../src/${file}`, import.meta.url), 'utf8')).join('\n');
+const printCss = readFileSync(new URL('../../src/print.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../constructs.crv', import.meta.url), 'utf8');
 const cli = new URL('../../node_modules/@markup-carve/carve/dist/cli2.js', import.meta.url).pathname;
 const rendered = spawnSync(process.execPath, [cli, 'render', '-'], { input: source, encoding: 'utf8' });
 if (rendered.status !== 0) throw new Error(rendered.stderr);
 
-async function styled(page, html, theme = 'light') {
-  await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body><article class="carve">${html}</article></body></html>`);
+async function styled(page, html, theme = 'light', print = false) {
+  await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style>${print ? `<style media="print">${printCss}</style>` : ''}</head><body><article class="carve">${html}</article></body></html>`);
 }
 
 test('0.2 fixture renders its changed semantic HTML', async ({ page }) => {
@@ -18,9 +19,34 @@ test('0.2 fixture renders its changed semantic HTML', async ({ page }) => {
   await expect(page.locator('.carve aside.admonition.note')).toHaveCount(1);
   await expect(page.locator('.carve figure.carve-figure-group > figure.carve-figure-panel')).toHaveCount(2);
   await expect(page.locator('.carve table > caption')).toHaveText('A table caption');
-  await expect(page.locator('.carve li.task')).toHaveCount(6);
+  await expect(page.locator('.carve li.task')).toHaveCount(8);
+  await expect(page.locator('.carve .tabs > .tab')).toHaveCount(2);
+  await expect(page.locator('.carve .tabs > .tab').first()).toHaveCSS('border-top-style', 'solid');
   await expect(page.locator('.carve sup').first()).toBeVisible();
   await expect(page.locator('.carve sub')).toBeVisible();
+});
+
+test('0.2 core directives and neutral admonitions are styled', async ({ page }) => {
+  await styled(page, rendered.stdout);
+  for (const kind of ['example', 'quote']) {
+    const edge = await page.locator(`.carve aside.admonition.${kind}`)
+      .evaluate(node => parseFloat(getComputedStyle(node).borderLeftWidth));
+    expect(edge).toBeGreaterThan(0);
+  }
+  await expect(page.locator('.carve .toc')).toHaveCSS('border-top-style', 'solid');
+  await expect(page.locator('.carve .glossary')).toHaveCSS('border-left-style', 'solid');
+  await expect(page.locator('.carve .references').filter({ hasText: 'One source.' })).toBeVisible();
+});
+
+test('0.2 task progress and blocked states keep distinct marks', async ({ page }) => {
+  await styled(page, rendered.stdout);
+  const progress = page.locator('.carve li[data-task-state="/"] > input');
+  const blocked = page.locator('.carve li[data-task-state="!"] > input');
+  await expect(progress).toHaveCount(1);
+  await expect(blocked).toHaveCount(1);
+  const a = await progress.evaluate(node => getComputedStyle(node).borderColor);
+  const b = await blocked.evaluate(node => getComputedStyle(node).borderColor);
+  expect(a).not.toBe(b);
 });
 
 test('0.2 admonitions and task controls receive theme rules', async ({ page }) => {
@@ -58,4 +84,19 @@ test('0.2 supplied-tree inline shapes have readable rules', async ({ page }) => 
   const size = await page.locator('.equation-number').evaluate(node => parseFloat(getComputedStyle(node).fontSize));
   expect(size).toBeGreaterThan(0);
   expect(size).toBeLessThan(16);
+});
+
+test('0.2 tab panels all print', async ({ page }) => {
+  const html = '<div class="tabs"><input type="radio" name="tabs-1" id="tabs-1-0" checked><label for="tabs-1-0">One</label><input type="radio" name="tabs-1" id="tabs-1-1"><label for="tabs-1-1">Two</label><div class="tab-panel">First</div><div class="tab-panel">Second</div></div>';
+  await styled(page, html, 'light', true);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.carve .tab-panel')).toHaveCount(2);
+  await expect(page.locator('.carve .tab-panel').nth(0)).toBeVisible();
+  await expect(page.locator('.carve .tab-panel').nth(1)).toBeVisible();
+});
+
+test('0.2 color swatch renderer output retains its chip', async ({ page }) => {
+  await styled(page, '<p><span class="swatch"><span class="swatch-chip" style="background-color:#aabbcc"></span><span class="swatch-val">#aabbcc</span></span></p>');
+  await expect(page.locator('.swatch')).toHaveCSS('display', 'inline-flex');
+  await expect(page.locator('.swatch-chip')).toHaveCSS('background-color', 'rgb(170, 187, 204)');
 });
