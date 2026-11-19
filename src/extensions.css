@@ -61,6 +61,17 @@
   display: block;
 }
 
+/* The build-time tabs renderer writes sections and headings without controls. */
+.carve .tabs > .tabs-panel {
+  flex: 1 0 100%;
+  padding: var(--carve-space-3);
+  border-block-start: var(--carve-border-width) solid var(--carve-rule);
+}
+.carve .tabs > .tabs-panel > .tabs-label {
+  margin-block: 0 var(--carve-space-2);
+  font-size: 1em;
+}
+
 /* C2-X migration color swatch renderer. */
 .carve .swatch {
   display: inline-flex;

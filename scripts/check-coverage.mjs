@@ -7,8 +7,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const spec = resolve(process.env.CARVE2_SPEC ?? join(root, '.corpus/spec/0.2'));
-const cli = resolve(process.env.CARVE2_CLI ?? join(root, 'node_modules/@markup-carve/carve/dist/cli2.js'));
+const spec = resolve(process.env.CARVE_SPEC ?? join(root, '.corpus/spec/0.2'));
+const cli = resolve(process.env.CARVE_CLI ?? join(root, 'node_modules/@markup-carve/carve/dist/cli2.js'));
 const htmlSource = join(spec, 'conformance');
 for (const path of [cli, join(htmlSource, 'examples.json'), join(htmlSource, 'clause-cases.json')]) {
   if (!existsSync(path)) throw new Error(`missing Carve 0.2 input: ${path}`);
