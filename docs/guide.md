@@ -18,7 +18,7 @@ The layers are `tokens.css` for custom properties, `core.css` for core HTML, and
 
 ## Write 0.2 source
 
-The preview fixtures in `test/constructs.crv` and `test/recipes.crv` use 0.2 syntax. The reference CLI is `carve2`, which is separate from the 0.1 CLI. For example:
+The preview fixtures in `test/constructs.crv` and `test/recipes.crv` use 0.2 syntax. The reference CLI is `carve`. For example:
 
 ```carve
 = A heading
@@ -29,7 +29,7 @@ A {=highlighted=} word, {^superscript^}, and {,subscript,}.
 | Tea |{>} 3 |
 ```
 
-Run `carve2 lint` and `carve2 fmt --check` on authored source. The 0.2 upgrade tool helps migrate 0.1 documents, but its report still needs review for changes that have no automatic preserving spelling.
+Run `carve lint` and `carve fmt --check` on authored source. The 0.2 upgrade tool helps migrate 0.1 documents, but its report still needs review for changes that have no automatic preserving spelling.
 
 ## HTML hooks
 
@@ -81,6 +81,6 @@ The light palette is the default. An unstamped root follows `prefers-color-schem
 
 ## Checks and previews
 
-`npm test` compares selectors with the HTML in the 0.2 spec examples and clause cases, plus both local fixtures rendered in interactive and static mode. A new emitted class, role, element, or renderer-owned data attribute fails unless it has a rule or a named semantic exemption. It also refuses the obsolete 0.1 selector classes. `npm run test:browsers` checks the 0.2 behavior in Chromium, Firefox, and WebKit. The older 0.1 browser specs stay in the repository as historical source but are outside the `next2` browser gate.
+`npm test` compares selectors with the HTML in the 0.2 spec examples and clause cases, plus both local fixtures rendered in interactive and static mode. A new emitted class, role, element, or renderer-owned data attribute fails unless it has a rule or a named semantic exemption. It also refuses the obsolete 0.1 selector classes. `npm run test:browsers` checks the 0.2 behavior in Chromium, Firefox, and WebKit. The browser gate exercises the 0.2 output.
 
 The [light before](screenshots/constructs-01-light.png), [light after](screenshots/constructs-02-light.png), [dark before](screenshots/constructs-01-dark.png), and [dark after](screenshots/constructs-02-dark.png) images are headless renders of the constructs page at a 1280 pixel viewport.

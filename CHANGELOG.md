@@ -4,6 +4,10 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Breaking
+
+- Make the 0.2 stylesheet and browser checks the only active surface. Remove the 0.1 browser cases and `v2` test and script names.
+
 ### Carve 0.2 preview
 
 - Pin the 0.2 reference engine for coverage and render the 0.2 spec HTML cases and canonical fixtures.

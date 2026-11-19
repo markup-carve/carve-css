@@ -1,6 +1,6 @@
 # carve-css
 
-CSS for HTML produced by Carve. The `next2` branch follows the Carve 0.2 specification and reference renderer. Carve 0.2 is not yet released. The stylesheet is scoped to a `.carve` container.
+CSS for HTML produced by Carve. The stylesheet follows the Carve 0.2 specification and reference renderer. The stylesheet is scoped to a `.carve` container.
 
 ```css
 @import "@markup-carve/carve-css";
