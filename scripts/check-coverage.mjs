@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const spec = resolve(process.env.CARVE_SPEC ?? join(root, '.corpus/spec/0.2'));
-const cli = resolve(process.env.CARVE_CLI ?? join(root, 'node_modules/@markup-carve/carve/dist/cli2.js'));
+const cli = resolve(process.env.CARVE_CLI ?? join(root, 'node_modules/@markup-carve/carve/dist/cli.js'));
 const htmlSource = join(spec, 'conformance');
 for (const path of [cli, join(htmlSource, 'examples.json'), join(htmlSource, 'clause-cases.json')]) {
   if (!existsSync(path)) throw new Error(`missing Carve 0.2 input: ${path}`);
@@ -72,7 +72,8 @@ const authorData = (input, name) => typeof input.source === 'string' &&
 
 const specCases = ['examples', 'clause-cases'].flatMap(kind => {
   const payload = JSON.parse(readFileSync(join(htmlSource, `${kind}.json`), 'utf8'));
-  return (payload.examples ?? payload.cases).filter(row => typeof row.expected?.html === 'string')
+  // C2-H-206/207: a codeBlockRenderer case writes host HTML, which is the host's to style.
+  return (payload.examples ?? payload.cases).filter(row => typeof row.expected?.html === 'string' && !row.options?.codeBlockRenderer)
     .map(row => ({ name: `${kind}/${row.id}`, source: row.input, tree: row.tree, html: row.expected.html }));
 });
 if (specCases.length < 850) throw new Error(`only ${specCases.length} HTML contract cases; expected at least 850`);
