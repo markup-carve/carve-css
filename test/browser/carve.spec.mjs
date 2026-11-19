@@ -6,7 +6,7 @@ const css = ['tokens.css', 'core.css', 'extensions.css', 'recipes.css', 'contras
   .map(file => readFileSync(new URL(`../../src/${file}`, import.meta.url), 'utf8')).join('\n');
 const printCss = readFileSync(new URL('../../src/print.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../constructs.crv', import.meta.url), 'utf8');
-const cli = new URL('../../node_modules/@markup-carve/carve/dist/cli2.js', import.meta.url).pathname;
+const cli = new URL('../../node_modules/@markup-carve/carve/dist/cli.js', import.meta.url).pathname;
 const rendered = spawnSync(process.execPath, [cli, 'render', '-'], { input: source, encoding: 'utf8' });
 if (rendered.status !== 0) throw new Error(rendered.stderr);
 
