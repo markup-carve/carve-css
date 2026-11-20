@@ -102,7 +102,7 @@
   .carve :focus-visible {
     outline: 3px solid Highlight;
   }
-  .carve :is(.admonition, blockquote) {
+  .carve :is(.admonition, .callout, blockquote) {
     border-color: CanvasText;
   }
 }

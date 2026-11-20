@@ -2,15 +2,16 @@
  * renderer-owned data attribute in its examples, clause cases, and our
  * rendered fixtures needs a screen rule or an explicit semantic exemption. */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import * as carve from '@markup-carve/carve';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const render = carve.render ?? carve.carveToHtml;
+if (typeof render !== 'function') throw new Error('pinned Carve engine has no HTML renderer');
 const spec = resolve(process.env.CARVE_SPEC ?? join(root, '.corpus/spec/0.2'));
-const cli = resolve(process.env.CARVE_CLI ?? join(root, 'node_modules/@markup-carve/carve/dist/cli.js'));
 const htmlSource = join(spec, 'conformance');
-for (const path of [cli, join(htmlSource, 'examples.json'), join(htmlSource, 'clause-cases.json')]) {
+for (const path of [join(htmlSource, 'examples.json'), join(htmlSource, 'clause-cases.json')]) {
   if (!existsSync(path)) throw new Error(`missing Carve 0.2 input: ${path}`);
 }
 const styles = readdirSync(join(root, 'src')).filter(name => name.endsWith('.css') && name !== 'print.css')
@@ -38,7 +39,7 @@ const unstyledClasses = new Set([
   // Unknown optional inline names are neutral fallback spans in these cases.
   'ext-spoiler', 'ext-note', 'ext-n', 'ext-foo', 'ext-f', 'ext-kbd', 'ext-index',
 ]);
-const unstyledRoles = new Set(['group', 'math', 'img', 'tablist', 'tab', 'tabpanel']);
+const unstyledRoles = new Set(['group', 'math', 'img', 'tablist', 'tab', 'tabpanel', 'region']);
 const unstyledElements = new Set(['abbr', 'b', 'br', 'caption', 'col', 'colgroup', 'dfn', 'em', 'kbd', 'label', 'nav', 'rp', 'rt', 'ruby', 'samp', 'script', 'span', 'sub', 'sup', 'template', 'time', 'tfoot', 'u', 'var']);
 // Import and source-position carriers carry facts for tools, not appearance.
 const unstyledData = new Set([
@@ -81,11 +82,9 @@ const fixtures = [];
 for (const file of readdirSync(join(root, 'test')).filter(name => name.endsWith('.crv'))) {
   const source = readFileSync(join(root, 'test', file), 'utf8');
   for (const mode of ['interactive', 'static']) {
-    const result = spawnSync(process.execPath, [cli, 'render', '--mode', mode, '-'], { input: source, encoding: 'utf8' });
-    if (result.status !== 0 || !result.stdout.includes('<')) {
-      throw new Error(`${file} failed to render in ${mode}: ${result.stderr}`);
-    }
-    fixtures.push({ name: `test/${file} (${mode})`, source, html: result.stdout });
+    const html = render(source, { mode });
+    if (!html.includes('<')) throw new Error(`${file} failed to render in ${mode}`);
+    fixtures.push({ name: `test/${file} (${mode})`, source, html });
   }
 }
 if (fixtures.length < 4) throw new Error('both 0.2 fixtures must render in both modes');

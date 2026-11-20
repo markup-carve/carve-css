@@ -24,7 +24,7 @@
   break-after: avoid;
   break-inside: avoid;
 }
-.carve :is(pre, blockquote, figure, table, .admonition) {
+.carve :is(pre, blockquote, figure, table, .admonition, .spoiler, .callouts) {
   break-inside: avoid;
 }
 .carve tr { break-inside: avoid; }
@@ -46,6 +46,122 @@
   border-block-end: 0;
   color: var(--carve-ink);
   font-weight: 600;
+}
+/* Static panels and radio-driven panels both retain their content on paper. */
+.carve .tabs > .tabs-panel,
+.carve .code-group > .code-group-panel {
+  display: block !important;
+}
+.carve .code-group-radio,
+.carve .code-group > label.code-group-label {
+  display: none;
+}
+/* CSS-mode panels own their names through aria-label, so each printed panel
+ * can carry its own title regardless of how many panels the group has. */
+.carve .code-group-panel[aria-label]::before {
+  content: attr(aria-label);
+  display: block;
+  padding: var(--carve-space-2) var(--carve-space-3);
+  font-weight: 600;
+}
+/* ARIA-mode panels name a preceding button through aria-labelledby instead.
+ * Pair those controls and panels in source order on paper. */
+.carve .code-group[role="tablist"] > button.code-group-label,
+.carve .code-group[role="tablist"] > .code-group-panel {
+  flex: 1 0 100%;
+  order: 1000;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(1) {
+  order: 1;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(1) {
+  order: 2;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(2) {
+  order: 3;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(2) {
+  order: 4;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(3) {
+  order: 5;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(3) {
+  order: 6;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(4) {
+  order: 7;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(4) {
+  order: 8;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(5) {
+  order: 9;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(5) {
+  order: 10;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(6) {
+  order: 11;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(6) {
+  order: 12;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(7) {
+  order: 13;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(7) {
+  order: 14;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(8) {
+  order: 15;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(8) {
+  order: 16;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(9) {
+  order: 17;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(9) {
+  order: 18;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(10) {
+  order: 19;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(10) {
+  order: 20;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(11) {
+  order: 21;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(11) {
+  order: 22;
+}
+.carve .code-group[role="tablist"] > button.code-group-label:nth-of-type(12) {
+  order: 23;
+}
+.carve .code-group[role="tablist"] > .code-group-panel:nth-of-type(12) {
+  order: 24;
+}
+.carve .code-group-label {
+  border-block-end: 0;
+  color: var(--carve-ink);
+  font-weight: 600;
+}
+.carve :where(details).spoiler {
+  display: block;
+}
+.carve :where(details).spoiler > :not(summary) {
+  display: revert;
+}
+.carve .spoiler {
+  filter: none;
+}
+.carve .permalink {
+  display: none;
+}
+.carve .index-list {
+  columns: var(--carve-print-index-columns);
 }
 .carve a[href^="http"]::after {
   content: " (" attr(href) ")";

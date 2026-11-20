@@ -73,6 +73,7 @@
   --carve-footnote-size: var(--carve-font-size-small);
   --carve-footnote-rule-width: 25%;
   --carve-print-link-destinations: inline;
+  --carve-print-index-columns: 2;
   --carve-print-footnote-size: 0.8em;
 
   /* Space. One scale, so constructs align with each other rather than each
@@ -85,6 +86,7 @@
 
   --carve-radius: 3px;
   --carve-border-width: 1px;
+  --carve-spoiler-blur: 0.25em;
   /* The stripe down the side of an admonition or a blockquote. */
   --carve-accent-width: 3px;
 }
