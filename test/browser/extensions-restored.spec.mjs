@@ -43,3 +43,31 @@ test('0.2 extension panels, labels, spoilers and badges are styled', async ({ pa
   expect(await page.locator('.section-number').evaluate((node) => getComputedStyle(node).fontVariantNumeric)).toContain('tabular-nums');
   expect(await page.locator('.citation').evaluate((node) => getComputedStyle(node).whiteSpace)).toBe('nowrap');
 });
+
+test('printed code groups keep a label with every panel', async ({ page }) => {
+  const printCss = readFileSync(new URL('../../src/print.css', import.meta.url), 'utf8');
+  await page.setContent(`<style>${css}\n${printCss}</style><main class="carve">
+    <div class="code-group" id="css-group">
+      <input type="radio" class="code-group-radio" checked><label class="code-group-label">A</label>
+      <input type="radio" class="code-group-radio"><label class="code-group-label">B</label>
+      <div class="code-group-panel" aria-label="A"><pre>one</pre></div>
+      <div class="code-group-panel" aria-label="B"><pre>two</pre></div>
+    </div>
+    <div class="code-group" role="tablist" id="aria-group">
+      <button class="code-group-label" role="tab">A</button><button class="code-group-label" role="tab">B</button>
+      <div class="code-group-panel" role="tabpanel"><pre>one</pre></div>
+      <div class="code-group-panel" role="tabpanel" hidden><pre>two</pre></div>
+    </div>
+  </main>`);
+  const cssPanels = page.locator('#css-group > .code-group-panel');
+  await expect(cssPanels).toHaveCount(2);
+  for (const [index, label] of ['A', 'B'].entries()) {
+    await expect(cssPanels.nth(index)).toBeVisible();
+    expect(await cssPanels.nth(index).evaluate((node) => getComputedStyle(node, '::before').content)).toBe(`"${label}"`);
+  }
+  const aria = page.locator('#aria-group');
+  const orders = await aria.evaluate((node) => [...node.children].map((child) => getComputedStyle(child).order));
+  expect(orders).toEqual(['1', '3', '2', '4']);
+  await expect(aria.locator('.code-group-panel')).toHaveCount(2);
+  await expect(aria.locator('.code-group-panel').nth(1)).toBeVisible();
+});

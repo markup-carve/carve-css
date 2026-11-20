@@ -2,11 +2,13 @@
  * renderer-owned data attribute in its examples, clause cases, and our
  * rendered fixtures needs a screen rule or an explicit semantic exemption. */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { carveToHtml } from '@markup-carve/carve';
+import * as carve from '@markup-carve/carve';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const render = carve.render ?? carve.carveToHtml;
+if (typeof render !== 'function') throw new Error('pinned Carve engine has no HTML renderer');
 const spec = resolve(process.env.CARVE_SPEC ?? join(root, '.corpus/spec/0.2'));
 const htmlSource = join(spec, 'conformance');
 for (const path of [join(htmlSource, 'examples.json'), join(htmlSource, 'clause-cases.json')]) {
@@ -80,7 +82,7 @@ const fixtures = [];
 for (const file of readdirSync(join(root, 'test')).filter(name => name.endsWith('.crv'))) {
   const source = readFileSync(join(root, 'test', file), 'utf8');
   for (const mode of ['interactive', 'static']) {
-    const html = carveToHtml(source, { mode });
+    const html = render(source, { mode });
     if (!html.includes('<')) throw new Error(`${file} failed to render in ${mode}`);
     fixtures.push({ name: `test/${file} (${mode})`, source, html });
   }
