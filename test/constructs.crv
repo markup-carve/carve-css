@@ -2,15 +2,15 @@
 %% gate's input: a construct missing from here is a construct the gate cannot
 %% check, so add to this file whenever the language grows one.
 
-# A heading
+= A heading
 
 Prose with /emphasis/, *strong*, `code`, a [link](https://example.com), an
-@mention, a #tag, a footnote[^note], {+inserted+}, {-deleted-} and
-{#an editorial comment#}.
+@mention, a #tag, a footnote[^note], {+inserted+}, {-deleted-}, and
+more {_underlined_} text with {~struck~}, {=highlighted=}, {^super^}, {,sub,}, and {#a comment#}.
 
 [^note]: The note's text.
 
-## Admonitions
+== Admonitions
 
 ::: note "With a title"
 Body.
@@ -28,103 +28,132 @@ Body.
 Body.
 :::
 
-::: important "Important"
+::: info "Information"
 Body.
 :::
 
-## Quotes and figures
+::: success "Success"
+Body.
+:::
+
+::: example "Example"
+Body.
+:::
+
+::: quote "Quoted"
+Body.
+:::
+
+== Quotes and figures
 
 > A quoted line.
 ^ The attribution
 
 ::: figure
-![alt text](image.png)
-^ The caption
+![First panel](image.png)
+^ First panel
+
+![Second panel](image-two.png)
+^ Second panel
 :::
+^ The group caption
 
 ![An uncaptioned block image](wide-image.png)
 
-## Tables
+== Tables
 
 |= Column |= Another |
 | cell | cell |
+^ A table caption
 
 |= Item |={>} Price |={~} Note |
 | tea |{>} 3.50 | hot |
 
-## Lists
+== Lists
 
 - [ ] an open task
 - [x] a done task
 - [-] a dropped task
 - [_] another open task
+- [/] an in-progress task
+- [!] a blocked task
 - [>] a deferred task
 - [?] a maybe task
 
-## Code
+A mixed bullet list:
 
-``` js
+- a plain item
+- [ ] a task beside it
+- [x] a done task beside it
+- another plain item
+
+A mixed ordered list:
+
+3. a plain step
+4. [ ] a task step
+5. [x] a done step
+6. a last plain step
+
+A loose mixed list:
+
+- [ ] a loose task
+
+  with a second paragraph
+
+- a loose plain item
+
+Nested both ways:
+
+- [ ] a task with a plain list
+  - a nested plain item
+  - another nested plain item
+- a plain item with a task list
+  - [ ] a nested task
+  - a nested plain item
+
+== Code
+
+```js
 const a = 1; // <1>
 ```
 
-<1> A callout bound to the marker above.
+This code block keeps its language on the code element.
 
-::: code-group
-``` js [one.js]
-a
-```
-``` php [two.php]
-b
-```
-:::
+== Tabs
 
-## Tabs
-
-::: tabs
+:::: tabs
 ::: tab "First"
 first panel
 :::
+
 ::: tab "Second"
 second panel
 :::
-:::
+::::
 
-## Disclosure
-
-Ending: :spoiler[the butler did it] and then the credits roll.
-
-::: spoiler "Hidden"
-Revealed.
-:::
-
-## Math
+== Math
 
 $$`E = mc^2`
 
-## Reference apparatus
+== Reference apparatus
 
 ::: glossary
-API
-:  Application Programming Interface
+:: API
+: Application Programming Interface
 :::
-
-An :index[indexed term] in prose.
 
 ::: toc
+
 :::
 
-::: list-table
-- - row one, cell one
-  - row one, cell two
-- - row two, cell one
-  - row two, cell two
+::: references
+One source.
 :::
 
-## Diagrams
+== Fenced languages
 
-%% Every diagram renderer the stylesheet has rules for. The spec corpus carries
-%% no diagram fence at all, so without these the rules for .mermaid, .d2 and
-%% the rest are checked against nothing.
+%% These render as ordinary code fences in the 0.2 core. Language classes are
+%% left to a syntax highlighter.
 
 ```mermaid
 graph TD; a-->b;
@@ -158,7 +187,7 @@ X:1
 { "type": "bar" }
 ```
 
-## Diff presentation
+== Diff presentation
 
 {.diff}
 ```js
@@ -173,7 +202,7 @@ X:1
 ```
 ^ Listing #: a captioned diff
 
-## Line breaks
+== Line breaks
 
 ::: |
 a line
@@ -185,9 +214,10 @@ one
 two
 :::
 
-## Highlighted text and references
+== Highlighted text and references
 
-A =highlighted= span.
+A {=highlighted=} span.
 
 ::: references
+
 :::

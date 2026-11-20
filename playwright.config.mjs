@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./test/browser",
+  testMatch: ["carve.spec.mjs", "extensions-restored.spec.mjs"],
   reporter: "line",
   use: { headless: true },
   projects: [
