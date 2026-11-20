@@ -10,16 +10,16 @@ const selectors = Object.values(css).join('\n').replace(/\/\*[\s\S]*?\*\//g, ' '
   .match(/[^{}]+\{[^{}]*\}/g)?.map(rule => rule.slice(0, rule.indexOf('{'))) ?? [];
 const classNames = new Set(selectors.flatMap(selector => [...selector.matchAll(/\.([a-z][\w-]*)/g)].map(match => match[1])));
 const obsolete = [
-  'tabs-radio', 'code-group', 'code-group-radio', 'code-group-label',
-  'code-group-panel', 'spoiler', 'spoiler-title', 'spoiler-revealed', 'callout', 'callouts',
-  'permalink', 'section-number', 'citation', 'term', 'index-term', 'index-list', 'index-backref',
-  'mermaid', 'd2', 'plantuml', 'graphviz', 'wavedrom', 'abc', 'vega-lite', 'chart',
-  'wikilink', 'heading-ref',
+  'tabs-radio',
 ];
 const required = [
   'carve', 'admonition', 'task', 'tab', 'tab-panel', 'tabs-panel', 'tabs-label', 'swatch', 'swatch-chip', 'smallcaps',
   'equation-number', 'carve-figure-group', 'carve-figure-panel', 'math', 'toc',
-  'glossary', 'references',
+  'glossary', 'references', 'code-group', 'code-group-radio', 'code-group-label',
+  'code-group-panel', 'spoiler', 'spoiler-title', 'spoiler-revealed', 'callout',
+  'callouts', 'term', 'index-term', 'index-list', 'index-backref', 'mermaid',
+  'd2', 'plantuml', 'graphviz', 'wavedrom', 'abc', 'vega-lite', 'chart',
+  'wikilink', 'heading-ref', 'permalink', 'section-number', 'citation',
 ];
 const stale = obsolete.filter(name => classNames.has(name));
 const absent = required.filter(name => !classNames.has(name));

@@ -24,7 +24,7 @@
   break-after: avoid;
   break-inside: avoid;
 }
-.carve :is(pre, blockquote, figure, table, .admonition) {
+.carve :is(pre, blockquote, figure, table, .admonition, .spoiler, .callouts) {
   break-inside: avoid;
 }
 .carve tr { break-inside: avoid; }
@@ -46,6 +46,34 @@
   border-block-end: 0;
   color: var(--carve-ink);
   font-weight: 600;
+}
+/* Static panels and radio-driven panels both retain their content on paper. */
+.carve .tabs > .tabs-panel,
+.carve .code-group > .code-group-panel {
+  display: block !important;
+}
+.carve .code-group-radio {
+  display: none;
+}
+.carve .code-group-label {
+  border-block-end: 0;
+  color: var(--carve-ink);
+  font-weight: 600;
+}
+.carve :where(details).spoiler {
+  display: block;
+}
+.carve :where(details).spoiler > :not(summary) {
+  display: revert;
+}
+.carve .spoiler {
+  filter: none;
+}
+.carve .permalink {
+  display: none;
+}
+.carve .index-list {
+  columns: var(--carve-print-index-columns);
 }
 .carve a[href^="http"]::after {
   content: " (" attr(href) ")";

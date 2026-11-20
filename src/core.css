@@ -48,6 +48,32 @@
   text-wrap: balance;
 }
 
+/* The permalink anchor the heading-permalinks extension adds. Hidden until the
+ * heading is hovered or the link itself is focused - keyboard users must be
+ * able to reach it, so this is opacity rather than display:none. */
+.carve .permalink {
+  opacity: 0;
+  margin-inline-start: var(--carve-space-2);
+  text-decoration: none;
+  transition: opacity 120ms ease-in-out;
+}
+.carve :is(h1, h2, h3, h4, h5, h6):hover .permalink,
+.carve .permalink:focus-visible {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .carve .permalink {
+    transition: none;
+  }
+}
+
+/* Auto-numbering, when the section-numbers extension is on. */
+.carve .section-number {
+  color: var(--carve-ink-soft);
+  margin-inline-end: var(--carve-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
 /* --- Inline -------------------------------------------------------------- */
 
 .carve a {
@@ -609,4 +635,9 @@
   overflow-x: auto;
   margin-block: var(--carve-space-4);
   text-align: center;
+}
+
+/* A citation from the optional citations renderer. */
+.carve .citation {
+  white-space: nowrap;
 }
