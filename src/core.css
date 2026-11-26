@@ -47,6 +47,13 @@
   margin-block: 0 var(--carve-space-3);
   text-wrap: balance;
 }
+/* C2-H-021: a heading shifted past level 6 renders as an ARIA heading div. */
+.carve [role="heading"] {
+  font-family: var(--carve-font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-block: 0 var(--carve-space-3);
+}
 
 /* The permalink anchor the heading-permalinks extension adds. Hidden until the
  * heading is hovered or the link itself is focused - keyboard users must be

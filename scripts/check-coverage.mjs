@@ -44,7 +44,7 @@ const unstyledElements = new Set(['abbr', 'b', 'br', 'caption', 'col', 'colgroup
 // Import and source-position carriers carry facts for tools, not appearance.
 const unstyledData = new Set([
   'data-callout', 'data-carve-raw', 'data-carve-ref',
-  'data-carve-footnote-label', 'data-source-line',
+  'data-carve-footnote-label', 'data-carve-source-level', 'data-source-line',
 ]);
 const knownKinds = new Set(JSON.parse(readFileSync(join(spec, 'data/div-names.json'), 'utf8')).names.map(row => row.name));
 const authorClass = (input, name) => {
