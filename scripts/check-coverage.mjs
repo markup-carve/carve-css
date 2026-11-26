@@ -45,6 +45,8 @@ const unstyledElements = new Set(['abbr', 'b', 'br', 'caption', 'col', 'colgroup
 const unstyledData = new Set([
   'data-callout', 'data-carve-raw', 'data-carve-ref',
   'data-carve-footnote-label', 'data-carve-source-level', 'data-source-line',
+  // C2-H-210 revision metadata on insertions, deletions and comments.
+  'data-author', 'data-datetime',
 ]);
 const knownKinds = new Set(JSON.parse(readFileSync(join(spec, 'data/div-names.json'), 'utf8')).names.map(row => row.name));
 const authorClass = (input, name) => {
