@@ -77,7 +77,7 @@ Override custom properties on the root or on `.carve`:
 
 The light palette is the default. An unstamped root follows `prefers-color-scheme`. Set `data-theme="light"` or `data-theme="dark"` on the root for an explicit choice. The optional `contrast.css` also follows increased contrast and forced colors. Set `data-carve-contrast="high"` on the root to request its high contrast palette.
 
-`print.css` is not in the main import. Load it with `media="print"` or include it unconditionally in a dedicated print renderer. It uses print tokens for footnote size and link destinations, prints every tab panel, and writes each panel's accessible name next to its content.
+`print.css` is not in the main import. Load it with `media="print"` or include it unconditionally in a dedicated print renderer. It uses print tokens for footnote size and link destinations, prints every tab panel, and writes each panel's accessible name next to its content. A thematic break with the class `page-break` (`{.page-break}` on the line above `***`) starts a new printed page and draws no rule; on screen it shows as a dashed rule.
 
 ## Checks and previews
 

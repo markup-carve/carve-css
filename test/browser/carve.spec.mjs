@@ -99,6 +99,20 @@ test('0.2 tab panels all print', async ({ page }) => {
   expect(names[1]).toContain('Two');
 });
 
+// carve#6793: `{.page-break}` on `***` breaks the page in print and shows dashed on screen.
+test('a page-break thematic break forces a printed page break', async ({ page }) => {
+  const input = 'Text of page one.\n\n{.page-break}\n***\n\nText of page two.\n';
+  const out = spawnSync(process.execPath, [cli, 'render', '-'], { input, encoding: 'utf8' });
+  expect(out.stdout).toContain('<hr class="page-break">');
+  await styled(page, out.stdout, 'light', true);
+  const hr = page.locator('.carve hr.page-break');
+  await expect(hr).toHaveCSS('border-top-style', 'dashed');
+  await page.emulateMedia({ media: 'print' });
+  await expect(hr).toHaveCSS('break-before', 'page');
+  await expect(hr).toHaveCSS('border-top-style', 'none');
+  await expect(hr).toHaveCSS('height', '0px');
+});
+
 test('0.2 color swatch renderer output retains its chip', async ({ page }) => {
   await styled(page, '<p><span class="swatch"><span class="swatch-chip" style="background-color:#aabbcc"></span><span class="swatch-val">#aabbcc</span></span></p>');
   await expect(page.locator('.swatch')).toHaveCSS('display', 'inline-flex');

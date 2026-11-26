@@ -47,6 +47,13 @@
   margin-block: 0 var(--carve-space-3);
   text-wrap: balance;
 }
+/* C2-H-021: a heading shifted past level 6 renders as an ARIA heading div. */
+.carve [role="heading"] {
+  font-family: var(--carve-font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-block: 0 var(--carve-space-3);
+}
 
 /* The permalink anchor the heading-permalinks extension adds. Hidden until the
  * heading is hovered or the link itself is focused - keyboard users must be
@@ -273,6 +280,10 @@
   border: 0;
   border-block-start: var(--carve-border-width) solid var(--carve-rule);
   margin-block: var(--carve-space-6);
+}
+/* Page-break convention (carve#6793): print.css breaks the page here. */
+.carve hr.page-break {
+  border-block-start-style: dashed;
 }
 
 /* Task list items (C2-H-032). A list may mix task and plain items, so every
