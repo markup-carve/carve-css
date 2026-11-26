@@ -47,6 +47,8 @@ const unstyledData = new Set([
   'data-carve-footnote-label', 'data-carve-source-level', 'data-source-line',
   // C2-H-210 revision metadata on insertions, deletions and comments.
   'data-author', 'data-datetime',
+  // C2-H-215/216 snippet uses and the C2-H-138 list marker are roundtrip carriers.
+  'data-carve-snippet', 'data-marker',
 ]);
 const knownKinds = new Set(JSON.parse(readFileSync(join(spec, 'data/div-names.json'), 'utf8')).names.map(row => row.name));
 const authorClass = (input, name) => {
