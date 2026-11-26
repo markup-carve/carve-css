@@ -47,6 +47,13 @@
   margin-block: 0 var(--carve-space-3);
   text-wrap: balance;
 }
+/* C2-H-021: a heading shifted past level 6 renders as an ARIA heading div. */
+.carve [role="heading"] {
+  font-family: var(--carve-font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-block: 0 var(--carve-space-3);
+}
 
 /* The permalink anchor the heading-permalinks extension adds. Hidden until the
  * heading is hovered or the link itself is focused - keyboard users must be
@@ -172,6 +179,16 @@
   font-size: var(--carve-font-size-small);
 }
 
+/* These two shapes come from supplied 0.2 trees (C2-H-142 and C2-H-151). */
+.carve .smallcaps {
+  font-variant-caps: small-caps;
+}
+.carve .equation-number {
+  color: var(--carve-ink-soft);
+  font-size: var(--carve-font-size-small);
+  margin-inline-start: var(--carve-space-2);
+}
+
 /* --- Blocks -------------------------------------------------------------- */
 
 .carve p,
@@ -264,9 +281,13 @@
   border-block-start: var(--carve-border-width) solid var(--carve-rule);
   margin-block: var(--carve-space-6);
 }
+/* Page-break convention (carve#6793): print.css breaks the page here. */
+.carve hr.page-break {
+  border-block-start-style: dashed;
+}
 
-/* Task list items. The engine emits a disabled <input type="checkbox"> with an
- * aria-label, inline in the item text. */
+/* Task list items (C2-H-032). A list may mix task and plain items, so every
+ * rule keys on `li.task`; the box is a disabled checkbox right behind `<li>`. */
 :root {
   --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
 }
@@ -279,7 +300,7 @@
 :root[data-theme="dark"] {
   --carve-task-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2314171b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 7l3 3 7-7'/%3E%3C/svg%3E");
 }
-.carve li > input[type="checkbox"] {
+.carve li.task > input[type="checkbox"] {
   margin-inline-end: var(--carve-space-2);
   /* Drawn by hand: browsers grey a disabled box and ignore accent-color on it,
    * so a checked and an open task looked alike. The list is a document, not a form. */
@@ -292,71 +313,62 @@
   background: var(--carve-surface);
   opacity: 1;
 }
-.carve li > input[type="checkbox"]:checked {
+.carve li.task > input[type="checkbox"]:checked {
   border-color: var(--carve-task-check-fill, var(--carve-success));
   background: var(--carve-task-check-fill, var(--carve-success)) var(--carve-task-check-icon) center / 80% 80% no-repeat;
 }
 /* Printing and forced colors restore the native checkmark. */
 @media print, (forced-colors: active) {
-  .carve li > input[type="checkbox"],
-  .carve li > input[type="checkbox"]:checked {
+  .carve li.task > input[type="checkbox"],
+  .carve li.task > input[type="checkbox"]:checked {
     appearance: auto;
     background-image: none;
   }
 }
-/* The box replaces the bullet: it floats into the marker column, the text starts
- * where a plain list's does, and a loose item's first paragraph sits beside the
- * box. A plain list nested in a task keeps its bullets, and an ordered list keeps
- * its numbers. Without a logical float the bullet-then-box line stays.
- * A task list names itself (spec PART 19); output from an engine that predates
- * the class is reached through a gated `:has()` instead. */
+/* The box floats so a loose item's `<p>` sits beside it. In a bullet list it
+ * replaces the bullet and hangs into the marker column, so its text starts where
+ * a plain sibling's does. In an ordered list the number stays and the box takes
+ * the text gap after it. Without a logical float the box stays inline. */
 @supports (float: inline-start) {
-  .carve ul.task-list > li {
+  .carve ul.task-list > li.task {
     list-style: none;
   }
-  .carve ul.task-list > li > input[type="checkbox"]:first-child {
+  .carve ul.task-list > li.task > input[type="checkbox"]:first-child,
+  .carve ol.task-list > li.task > input[type="checkbox"]:first-child {
     float: inline-start;
     /* The base rule's 1em box is in the UA's control font (13.3px in Chromium
-     * and Firefox, 16px in WebKit); the hang below needs the text's em. */
+     * and Firefox, 16px in WebKit); the float needs the text's em. */
     font-size: inherit;
     margin-block: calc((var(--carve-line-height) - 1) * 0.5em - 0.1em) 0;
-    margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
+    margin-inline: 0 var(--carve-space-2);
   }
-}
-@supports selector(:has(> a)) and (float: inline-start) {
-  .carve ul > li:has(> input[type="checkbox"]:first-child) {
-    list-style: none;
-  }
-  .carve ul > li > input[type="checkbox"]:first-child {
-    float: inline-start;
-    font-size: inherit;
-    margin-block: calc((var(--carve-line-height) - 1) * 0.5em - 0.1em) 0;
-    margin-inline: calc(-1em - var(--carve-space-2)) var(--carve-space-2);
+  .carve ul.task-list > li.task > input[type="checkbox"]:first-child {
+    margin-inline-start: calc(-1em - var(--carve-space-2));
   }
 }
 /* Completed task text recedes while its checked box keeps the state visible. */
-.carve li[data-task-state="x"] {
+.carve li.task[data-task-state="x"] {
   color: var(--carve-ink-soft);
 }
-.carve li[data-task-state="x"] > ul,
-.carve li[data-task-state="x"] > ol {
+.carve li.task[data-task-state="x"] > ul,
+.carve li.task[data-task-state="x"] > ol {
   color: var(--carve-ink);
 }
 
 /* `_` spells the same open state as a space. The remaining extended states
  * need distinct marks on the box; the engine keeps their authored characters
  * on the item for styling and round trips. */
-.carve li[data-task-state] > input[type="checkbox"] {
+.carve li.task[data-task-state] > input[type="checkbox"] {
   outline-offset: 2px;
 }
-.carve li[data-task-state="-"] > input[type="checkbox"] {
+.carve li.task[data-task-state="-"] > input[type="checkbox"] {
   border-color: var(--carve-ink-soft);
   background-image: linear-gradient(var(--carve-ink-soft), var(--carve-ink-soft));
   background-position: center;
   background-size: 60% 2px;
   background-repeat: no-repeat;
 }
-.carve li[data-task-state="/"] > input[type="checkbox"] {
+.carve li.task[data-task-state="/"] > input[type="checkbox"] {
   border-color: var(--carve-accent);
   background-color: var(--carve-accent-soft);
   background-image: linear-gradient(135deg, transparent 38%, var(--carve-accent) 39% 61%, transparent 62%);
@@ -364,7 +376,7 @@
   background-size: 70% 70%;
   background-repeat: no-repeat;
 }
-.carve li[data-task-state="!"] > input[type="checkbox"] {
+.carve li.task[data-task-state="!"] > input[type="checkbox"] {
   border-color: var(--carve-danger);
   background-color: var(--carve-danger-wash);
   background-image: linear-gradient(var(--carve-danger), var(--carve-danger)),
@@ -373,10 +385,10 @@
   background-size: 2px 47%, 4px 4px;
   background-repeat: no-repeat;
 }
-.carve li[data-task-state=">"] > input[type="checkbox"] {
+.carve li.task[data-task-state=">"] > input[type="checkbox"] {
   outline: var(--carve-border-width) solid var(--carve-accent);
 }
-.carve li[data-task-state="?"] > input[type="checkbox"] {
+.carve li.task[data-task-state="?"] > input[type="checkbox"] {
   outline: var(--carve-border-width) dotted var(--carve-ink-soft);
 }
 
@@ -390,11 +402,7 @@
 
 /* --- Admonitions --------------------------------------------------------- */
 
-/* <aside class="admonition TYPE"> plus an optional
- * <p class="admonition-title">. The type word comes from the source, so it is
- * an open vocabulary: the base rule has to stand on its own for a type this
- * package has never heard of, and the semantic colours below are additions
- * rather than requirements. */
+/* C2-H-154: one of the registered admonition kinds on an aside. */
 .carve .admonition {
   --carve-adm: var(--carve-neutral);
   --carve-adm-wash: var(--carve-neutral-wash);
@@ -417,23 +425,18 @@
   --carve-adm: var(--carve-info);
   --carve-adm-wash: var(--carve-info-wash);
 }
-.carve .admonition:is(.tip, .success, .hint) {
+.carve .admonition:is(.tip, .success) {
   --carve-adm: var(--carve-success);
   --carve-adm-wash: var(--carve-success-wash);
 }
-.carve .admonition:is(.warning, .caution, .attention) {
+.carve .admonition.warning {
   --carve-adm: var(--carve-warn);
   --carve-adm-wash: var(--carve-warn-wash);
 }
-.carve .admonition:is(.danger, .error, .bug) {
+.carve .admonition.danger {
   --carve-adm: var(--carve-danger);
   --carve-adm-wash: var(--carve-danger-wash);
 }
-.carve .admonition.important {
-  --carve-adm: var(--carve-accent);
-  --carve-adm-wash: var(--carve-accent-soft);
-}
-
 /* The label a `[ref]` on a container produces. */
 .carve .div-label {
   color: var(--carve-ink-soft);
@@ -513,6 +516,10 @@
   flex: 1 1 16rem;
   margin: 0;
 }
+/* A titled figure opener is a plain div in 0.2, not a figure group. */
+.carve div.figure {
+  margin-block-end: var(--carve-space-4);
+}
 
 /* --- Tables -------------------------------------------------------------- */
 
@@ -582,7 +589,66 @@
   text-decoration: none;
 }
 
-/* A citation, when the citations extension is on. */
+
+/* 0.2 core directives and math. */
+.carve .toc {
+  border: var(--carve-border-width) solid var(--carve-rule);
+  border-radius: var(--carve-radius);
+  padding: var(--carve-space-3) var(--carve-space-4);
+  margin-block-end: var(--carve-space-4);
+  background: var(--carve-sunk);
+  font-size: var(--carve-font-size-small);
+}
+.carve .toc ul {
+  list-style: none;
+  padding-inline-start: var(--carve-space-4);
+  margin-block: 0;
+}
+.carve .toc > ul {
+  padding-inline-start: 0;
+}
+.carve .toc a {
+  text-decoration: none;
+}
+.carve .toc a:hover {
+  text-decoration: underline;
+}
+/* An empty toc means the document had no headings to collect. Rendering an
+ * empty bordered box as if it were content is worse than rendering nothing. */
+.carve .toc:empty {
+  display: none;
+}
+
+.carve .glossary {
+  border-inline-start: var(--carve-accent-width) solid var(--carve-rule);
+  padding-inline-start: var(--carve-space-4);
+  margin-block-end: var(--carve-space-4);
+}
+.carve .references {
+  margin-block-end: var(--carve-space-4);
+  font-size: var(--carve-font-size-small);
+}
+.carve .references > p {
+  padding-inline-start: var(--carve-space-4);
+  text-indent: calc(-1 * var(--carve-space-4));
+  margin-block-end: var(--carve-space-2);
+}
+.carve .references:empty {
+  display: none;
+}
+
+.carve .math {
+  font-family: var(--carve-font-mono);
+}
+/* Display math is its own block and can be wider than the measure. */
+.carve .math.display {
+  display: block;
+  overflow-x: auto;
+  margin-block: var(--carve-space-4);
+  text-align: center;
+}
+
+/* A citation from the optional citations renderer. */
 .carve .citation {
   white-space: nowrap;
 }

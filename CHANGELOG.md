@@ -4,6 +4,18 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+### Breaking
+
+- Make the 0.2 stylesheet and browser checks the only active surface. Remove the 0.1 browser cases and `v2` test and script names.
+
+### Carve 0.2 preview
+
+- Pin the 0.2 reference engine for coverage and render the 0.2 spec HTML cases and canonical fixtures.
+- Style the 0.2 task item, titled plain figure, and optional tab panel shapes. Add light and dark browser previews.
+- Update the guide for 0.2 source syntax and HTML hooks.
+- Remove 0.1-only extension selectors from the active 0.2 layers and check that they do not return. The browser gate now selects 0.2 rendering tests.
+- Pin the renamed carve-js `next2` engine (11de2ad); the checks run its `dist/cli.js`.
+
 ## [0.1.10] - 2026-11-12
 
 ### Fixes
