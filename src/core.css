@@ -274,6 +274,10 @@
   border-block-start: var(--carve-border-width) solid var(--carve-rule);
   margin-block: var(--carve-space-6);
 }
+/* Page-break convention (carve#6793): print.css breaks the page here. */
+.carve hr.page-break {
+  border-block-start-style: dashed;
+}
 
 /* Task list items (C2-H-032). A list may mix task and plain items, so every
  * rule keys on `li.task`; the box is a disabled checkbox right behind `<li>`. */

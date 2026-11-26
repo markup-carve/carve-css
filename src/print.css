@@ -28,6 +28,12 @@
   break-inside: avoid;
 }
 .carve tr { break-inside: avoid; }
+.carve hr.page-break {
+  break-before: page;
+  border: 0;
+  height: 0;
+  margin: 0;
+}
 .carve thead { display: table-header-group; }
 /* Every 0.2 tab panel must print, regardless of the checked radio. */
 .carve .tabs > .tab-panel {
