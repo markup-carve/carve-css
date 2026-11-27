@@ -4,17 +4,21 @@ Notable changes to `@markup-carve/carve-css`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
 ### Breaking
 
-- Make the 0.2 stylesheet and browser checks the only active surface. Remove the 0.1 browser cases and `v2` test and script names.
+- The stylesheet targets the HTML that Carve 0.2 renders. Selectors for 0.1-only output and 0.1-only extension shapes are gone (#70, #71, #74).
+- Task styling keys on `li.task`. The `:has()` fallback that matched any bullet item with a leading checkbox is dropped, because 0.2 output always names its task items (#73).
 
-### Carve 0.2 preview
+### Improvements
 
-- Pin the 0.2 reference engine for coverage and render the 0.2 spec HTML cases and canonical fixtures.
-- Style the 0.2 task item, titled plain figure, and optional tab panel shapes. Add light and dark browser previews.
-- Update the guide for 0.2 source syntax and HTML hooks.
-- Remove 0.1-only extension selectors from the active 0.2 layers and check that they do not return. The browser gate now selects 0.2 rendering tests.
-- Pin the renamed carve-js `next2` engine (11de2ad); the checks run its `dist/cli.js`.
+- Style the 0.2 task item, titled plain figure, and optional tab panel shapes, with light and dark previews (#70, #71).
+- A list can mix task items and plain items, bullet or ordered. Task text and plain text share one column, and ordered task items keep their number (#73).
+- Tab sets, code groups, spoilers, callouts, tables of contents and glossaries are styled again for the 0.2 output; printed code-group labels sit with their panels (#78).
+- `hr.page-break` starts a new printed page and shows a dashed rule on screen (#81).
+- A heading shifted past level 6, which 0.2 renders as `div role="heading"`, gets the heading style (#81).
+- The guide covers 0.2 source syntax and HTML hooks (#70, #81).
 
 ## [0.1.10] - 2026-11-12
 
