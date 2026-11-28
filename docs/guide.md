@@ -43,6 +43,10 @@ Supplied 0.2 trees can also render `.smallcaps`, `<ruby>`, and `.equation-number
 
 The optional 0.2 tabs renderer writes `.tabs` with bare radio inputs, linked labels, and `.tab-panel` children. The screen rule hides the unselected panels when a radio is checked. Without the rule, all panels remain readable. With the extension off, the core writes `.tabs > .tab` divs and this stylesheet shows every body as a readable fallback. A host writing a selector for an interactive panel should use `.tab-panel`; the 0.1 `.tabs-panel` shape is not the 0.2 standard extension output.
 
+Line numbers and highlighted lines are attributes on the line above a fence: `.line-numbers`, `data-line-start` and `data-highlight` (a list of 1-based numbers and `a-b` ranges, counted from the first line of the block). The engine passes them to `<pre>` unchanged, so a host highlighter splits the lines. The stylesheet styles two line markups: `span.line` with `data-line` and `.highlighted`, and the `.hl-gutter` and `.hl-line-highlighted` spans of tempest/highlight. The gutter number comes from `data-line` and cannot be selected, so copying code never copies it. `--carve-code-gutter-width` sets the gutter width per block, and `--carve-code-line-number`, `--carve-code-line-highlight` and `--carve-code-line-marker` color it.
+
+A host script can add a copy button and a language label. It wraps the `<pre>` in `.code-block` and `.code-body`, and puts a `.code-copy` button in the body, shown on hover and focus. Its `.code-copy-text` stays visually hidden until a copy succeeds. A fence with a title adds a `.code-header` bar with `.code-title` and `.code-lang`. Without a title, `.code-lang` sits in the corner of the body and gives way to the button.
+
 ## Recipes
 
 `recipes.css` styles author classes on ordinary 0.2 elements. Import it after the main stylesheet:

@@ -257,6 +257,170 @@
   border-inline-start: var(--carve-accent-width) solid var(--carve-border);
 }
 
+/* Code line options (carve#6791): `.line-numbers`, `data-line-start` and
+ * `data-highlight` reach <pre> unchanged, and the host highlighter splits the
+ * lines. Two line markups are styled: `span.line[data-line]` with
+ * `.highlighted`, and tempest/highlight's `.hl-gutter` and
+ * `.hl-line-highlighted`. The gutter is generated or unselectable, so copying
+ * the code never copies the numbers. */
+.carve pre :is(.line, .hl-line-highlighted) {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 100%;
+}
+/* A hanging indent, so a host that wraps long lines keeps them off the gutter. */
+.carve pre.line-numbers .line {
+  --carve-code-gutter-span: calc(var(--carve-code-gutter-width) + var(--carve-space-2) + var(--carve-border-width) + var(--carve-space-3));
+  padding-inline-start: var(--carve-code-gutter-span);
+  text-indent: calc(-1 * var(--carve-code-gutter-span));
+}
+.carve pre.line-numbers .line::before {
+  content: attr(data-line);
+  content: attr(data-line) / "";
+}
+.carve pre.line-numbers .line::before,
+.carve pre .hl-gutter {
+  display: inline-block;
+  box-sizing: content-box;
+  min-width: var(--carve-code-gutter-width);
+  margin-inline-end: var(--carve-space-3);
+  padding-inline-end: var(--carve-space-2);
+  border-inline-end: var(--carve-border-width) solid var(--carve-rule);
+  color: var(--carve-code-line-number);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  text-indent: 0;
+  user-select: none;
+}
+.carve pre :is(.line.highlighted, .hl-line-highlighted) {
+  background: var(--carve-code-line-highlight);
+  box-shadow: calc(-1 * var(--carve-accent-width)) 0 0 var(--carve-code-line-marker);
+}
+/* An empty marked line still needs a line box for its band. */
+.carve pre .line.highlighted:empty::after {
+  content: "\200b";
+}
+
+/* Code block chrome: a host script wraps a <pre> in `.code-block` >
+ * `.code-body` and puts a `.code-copy` button in the corner of the body, shown
+ * on hover and focus; its `.code-copy-text` stays visually hidden until a copy
+ * succeeds. A fenced title adds a `.code-header` bar above the body with
+ * `.code-title` (the `title` attribute) and `.code-lang` (from `language-*`).
+ * Without a title, `.code-lang` sits in the body's corner and gives way to
+ * the button, so the block costs no height. */
+.carve .code-block {
+  margin-block: 0 var(--carve-space-4);
+}
+.carve .code-body {
+  position: relative;
+}
+.carve .code-body > pre {
+  margin: 0;
+}
+.carve .code-header + .code-body > pre {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-block-start: 0;
+}
+.carve .code-header {
+  display: flex;
+  align-items: center;
+  gap: var(--carve-space-2);
+  min-height: 2.25rem;
+  padding-inline: var(--carve-space-3);
+  background: var(--carve-sunk);
+  border: var(--carve-border-width) solid var(--carve-rule);
+  border-start-start-radius: var(--carve-radius);
+  border-start-end-radius: var(--carve-radius);
+  font-family: var(--carve-font-mono);
+  font-size: var(--carve-font-size-small);
+  color: var(--carve-ink-soft);
+}
+.carve .code-title {
+  overflow: hidden;
+  color: var(--carve-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carve .code-lang {
+  margin-inline-start: auto;
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.carve .code-body > :is(.code-lang, .code-copy) {
+  position: absolute;
+  inset-block-start: var(--carve-space-1);
+  inset-inline-end: var(--carve-space-1);
+  z-index: 1;
+  font-family: var(--carve-font-mono);
+  font-size: var(--carve-font-size-small);
+  transition: opacity 0.15s;
+}
+.carve .code-body > .code-lang {
+  margin: 0;
+  padding: var(--carve-space-1) var(--carve-space-2);
+  color: var(--carve-ink-soft);
+  pointer-events: none;
+}
+.carve .code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--carve-space-1);
+  padding: var(--carve-space-1) var(--carve-space-2);
+  background: var(--carve-sunk);
+  border: var(--carve-border-width) solid var(--carve-rule);
+  border-radius: var(--carve-radius);
+  color: var(--carve-ink-soft);
+  cursor: pointer;
+  opacity: 0;
+}
+.carve .code-copy:hover {
+  color: var(--carve-ink);
+}
+.carve .code-copy:focus-visible {
+  outline: 2px solid var(--carve-accent);
+  outline-offset: 1px;
+}
+.carve .code-copy.is-copied {
+  color: var(--carve-success);
+}
+.carve .code-copy-icon {
+  display: inline-flex;
+}
+.carve .code-copy:not(.is-copied) .code-copy-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.carve .code-block:is(:hover, :focus-within) .code-copy,
+.carve .code-copy.is-copied {
+  opacity: 1;
+}
+.carve .code-block:is(:hover, :focus-within) .code-body > .code-lang,
+.carve .code-body:has(> .code-copy.is-copied) > .code-lang {
+  opacity: 0;
+}
+/* Without hover both stay visible, the label beside the button. */
+@media (hover: none) {
+  .carve .code-copy {
+    opacity: 0.8;
+  }
+  .carve .code-body > .code-lang,
+  .carve .code-block:is(:hover, :focus-within) .code-body > .code-lang {
+    inset-inline-end: 2.5rem;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carve .code-body > :is(.code-lang, .code-copy) {
+    transition: none;
+  }
+}
+
 /* `::: |` is a line block: the engine keeps the author's line breaks with <br>,
  * so the one thing the layer has to do is stop a long line from being re-folded
  * at a width the author did not choose. */

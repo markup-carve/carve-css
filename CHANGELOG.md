@@ -16,6 +16,11 @@ Notable changes to `@markup-carve/carve-css`.
 - Remove 0.1-only extension selectors from the active 0.2 layers and check that they do not return. The browser gate now selects 0.2 rendering tests.
 - Pin the renamed carve-js `next2` engine (11de2ad); the checks run its `dist/cli.js`.
 
+### Improvements
+
+- Style code line options (carve#6791): a line-number gutter from `data-line`, highlighted lines with a marker, and a hanging indent for wrapped lines. Covers `span.line` and the tempest/highlight `.hl-gutter` and `.hl-line-highlighted` markup.
+- Style a host code block header and copy button: `.code-block`, `.code-body`, `.code-header`, `.code-title`, `.code-lang` and `.code-copy`.
+
 ## [0.1.10] - 2026-11-12
 
 ### Fixes

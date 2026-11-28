@@ -89,6 +89,14 @@
   --carve-spoiler-blur: 0.25em;
   /* The stripe down the side of an admonition or a blockquote. */
   --carve-accent-width: 3px;
+
+  /* Code line options (carve#6791). The number and the band resolve through
+   * the palette, so the dark theme needs no second value. A host that knows
+   * the widest line number sets the gutter width per block. */
+  --carve-code-line-number: var(--carve-ink-soft);
+  --carve-code-line-highlight: color-mix(in srgb, var(--carve-warn) 16%, transparent);
+  --carve-code-line-marker: var(--carve-warn);
+  --carve-code-gutter-width: 2ch;
 }
 
 @media (prefers-color-scheme: dark) {
