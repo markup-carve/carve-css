@@ -357,6 +357,9 @@
   font-size: var(--carve-font-size-small);
   transition: opacity 0.15s;
 }
+.carve .code-body:has(> .code-lang) > pre {
+  padding-inline-end: calc(var(--carve-space-3) + 4em);
+}
 .carve .code-body > .code-lang {
   margin: 0;
   padding: var(--carve-space-1) var(--carve-space-2);
