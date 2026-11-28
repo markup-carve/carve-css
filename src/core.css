@@ -266,7 +266,9 @@
 .carve pre :is(.line, .hl-line-highlighted) {
   display: inline-block;
   box-sizing: border-box;
-  min-width: 100%;
+  /* A corner label reserves room at the end; the line still spans under it. */
+  min-width: calc(100% + var(--carve-code-end-room, 0px));
+  margin-inline-end: calc(-1 * var(--carve-code-end-room, 0px));
 }
 /* A hanging indent, so a host that wraps long lines keeps them off the gutter. */
 .carve pre.line-numbers .line {
@@ -310,6 +312,9 @@
  * the button, so the block costs no height. */
 .carve .code-block {
   margin-block: 0 var(--carve-space-4);
+}
+.carve .code-group-panel > .code-block {
+  margin-block-end: 0;
 }
 .carve .code-body {
   position: relative;
@@ -357,8 +362,14 @@
   font-size: var(--carve-font-size-small);
   transition: opacity 0.15s;
 }
+/* A highlighter that makes <code> its own scroll box (highlight.js does)
+ * would clip marked lines at its edge; the <pre> scrolls instead. */
+.carve .code-body > pre > code {
+  overflow: visible;
+}
 .carve .code-body:has(> .code-lang) > pre {
-  padding-inline-end: calc(var(--carve-space-3) + 4em);
+  --carve-code-end-room: 4em;
+  padding-inline-end: calc(var(--carve-space-3) + var(--carve-code-end-room));
 }
 .carve .code-body > .code-lang {
   margin: 0;
